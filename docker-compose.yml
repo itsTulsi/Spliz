@@ -1,0 +1,44 @@
+services:
+  fairshare-db:
+    image: postgres:16-alpine
+    container_name: fairshare-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-fairshare_db}
+      POSTGRES_USER: ${DB_USER:-fairshare_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fairshare_secret_2026}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fairshare_user} -d ${DB_NAME:-fairshare_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fairshare-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fairshare-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@fairshare.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin_secret}
+    ports:
+      - "5050:80"
+    depends_on:
+      fairshare-db:
+        condition: service_healthy
+    networks:
+      - fairshare-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  fairshare-network:
+    driver: bridge

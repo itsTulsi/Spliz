@@ -1,0 +1,12 @@
+package com.fairshare.enums;
+
+public enum ActivityEventType {
+    GROUP_CREATED,
+    MEMBER_ADDED,
+    EXPENSE_CREATED,
+    EXPENSE_UPDATED,
+    EXPENSE_DELETED,
+    SETTLEMENT_RECORDED,
+    SETTLEMENT_VOIDED,
+    SCENARIO_APPLIED
+}

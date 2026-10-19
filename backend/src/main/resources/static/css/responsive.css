@@ -1,0 +1,44 @@
+/* Responsive Styles */
+
+@media (max-width: 1024px) {
+  .col-span-8 { grid-column: span 12 / span 12; }
+  .col-span-4 { grid-column: span 12 / span 12; }
+  .col-span-6 { grid-column: span 12 / span 12; }
+  .col-span-3 { grid-column: span 6 / span 6; }
+}
+
+@media (max-width: 640px) {
+  .col-span-3 { grid-column: span 12 / span 12; }
+  
+  .navbar .nav-inner {
+    height: auto;
+    padding: 0.75rem 0;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .nav-links {
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    justify-content: flex-start;
+  }
+
+  .nav-actions {
+    justify-content: flex-end;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .modal-dialog {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+
+  .data-table {
+    display: block;
+    overflow-x: auto;
+  }
+}

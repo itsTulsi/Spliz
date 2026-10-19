@@ -1,0 +1,26 @@
+# Root gitignore for Spliz FairShare Intelligence Project
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.logs
+*.log
+
+# Environment files
+.env
+!.env.example
+
+# IDE specific files
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+Thumbs.db
