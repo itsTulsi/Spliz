@@ -13,13 +13,19 @@ public class MemberDto {
     private String displayName;
 
     private Instant joinedAt;
+    private String upiId;
 
     public MemberDto() {}
 
     public MemberDto(Long id, Long groupId, String displayName, Instant joinedAt) {
+        this(id, groupId, displayName, null, joinedAt);
+    }
+
+    public MemberDto(Long id, Long groupId, String displayName, String upiId, Instant joinedAt) {
         this.id = id;
         this.groupId = groupId;
         this.displayName = displayName;
+        this.upiId = upiId;
         this.joinedAt = joinedAt;
     }
 
@@ -31,6 +37,9 @@ public class MemberDto {
 
     public String getDisplayName() { return displayName; }
     public void setDisplayName(String displayName) { this.displayName = displayName; }
+
+    public String getUpiId() { return upiId; }
+    public void setUpiId(String upiId) { this.upiId = upiId; }
 
     public Instant getJoinedAt() { return joinedAt; }
     public void setJoinedAt(Instant joinedAt) { this.joinedAt = joinedAt; }

@@ -20,14 +20,22 @@ public class GroupMemberEntity {
     @Column(name = "display_name", nullable = false, length = 80)
     private String displayName;
 
+    @Column(name = "upi_id", length = 100)
+    private String upiId;
+
     @Column(name = "joined_at", nullable = false, updatable = false)
     private Instant joinedAt = Instant.now();
 
     public GroupMemberEntity() {}
 
     public GroupMemberEntity(GroupEntity group, String displayName) {
+        this(group, displayName, null);
+    }
+
+    public GroupMemberEntity(GroupEntity group, String displayName, String upiId) {
         this.group = group;
         this.displayName = displayName;
+        this.upiId = upiId;
     }
 
     public Long getId() { return id; }
@@ -38,6 +46,9 @@ public class GroupMemberEntity {
 
     public String getDisplayName() { return displayName; }
     public void setDisplayName(String displayName) { this.displayName = displayName; }
+
+    public String getUpiId() { return upiId; }
+    public void setUpiId(String upiId) { this.upiId = upiId; }
 
     public Instant getJoinedAt() { return joinedAt; }
 }

@@ -2,7 +2,10 @@ package com.fairshare.controller;
 
 import com.fairshare.dto.GroupDto;
 import com.fairshare.dto.MemberDto;
+import com.fairshare.dto.SettleUpPreviewDto;
+import com.fairshare.dto.SettleUpResultDto;
 import com.fairshare.service.GroupService;
+import com.fairshare.service.SettlementService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +18,11 @@ import java.util.List;
 public class GroupController {
 
     private final GroupService groupService;
+    private final SettlementService settlementService;
 
-    public GroupController(GroupService groupService) {
+    public GroupController(GroupService groupService, SettlementService settlementService) {
         this.groupService = groupService;
+        this.settlementService = settlementService;
     }
 
     @GetMapping
@@ -57,5 +62,22 @@ public class GroupController {
     public ResponseEntity<MemberDto> addMember(@PathVariable Long groupId, @Valid @RequestBody MemberDto dto) {
         MemberDto created = groupService.addMemberToGroup(groupId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{groupId}/members/{memberId}")
+    public ResponseEntity<MemberDto> updateMember(@PathVariable Long groupId,
+                                                  @PathVariable Long memberId,
+                                                  @Valid @RequestBody MemberDto dto) {
+        return ResponseEntity.ok(groupService.updateMember(groupId, memberId, dto));
+    }
+
+    @GetMapping("/{groupId}/settle-up/preview")
+    public ResponseEntity<SettleUpPreviewDto> previewSettleUp(@PathVariable Long groupId) {
+        return ResponseEntity.ok(settlementService.previewSettleUp(groupId));
+    }
+
+    @PostMapping("/{groupId}/settle-up")
+    public ResponseEntity<SettleUpResultDto> executeSettleUp(@PathVariable Long groupId) {
+        return ResponseEntity.ok(settlementService.executeSettleUp(groupId));
     }
 }

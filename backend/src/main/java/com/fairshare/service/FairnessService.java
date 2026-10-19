@@ -2,6 +2,7 @@ package com.fairshare.service;
 
 import com.fairshare.dto.PreviewSplitRequest;
 import com.fairshare.dto.PreviewSplitResponse;
+import com.fairshare.dto.ShareInputDto;
 import com.fairshare.dto.ShareResponseDto;
 import com.fairshare.entity.ExpenseEntity;
 import com.fairshare.entity.ExpenseShareEntity;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FairnessService {
@@ -119,21 +121,44 @@ public class FairnessService {
             allocatedShares = splitCalculationService.calculatePercentageSplit(totalPaise, request.getShares());
         }
 
-        // Delete existing shares and recreate updated shares
-        expenseShareRepository.deleteByExpenseId(expenseId);
-        expense.getShares().clear();
+        Map<Long, Integer> percentageMap = new HashMap<>();
+        if (request.getShares() != null) {
+            for (ShareInputDto s : request.getShares()) {
+                if (s.getMemberId() != null && s.getPercentageBasisPoints() != null) {
+                    percentageMap.put(s.getMemberId(), s.getPercentageBasisPoints());
+                }
+            }
+        }
+
         expense.setSplitMethod(method);
         expense.setAmountPaise(totalPaise);
 
+        // Map existing shares by member ID for in-place update
+        Map<Long, ExpenseShareEntity> existingShareMap = expense.getShares().stream()
+                .collect(Collectors.toMap(s -> s.getMember().getId(), s -> s));
+
+        // Remove shares no longer participating (orphanRemoval issues SQL DELETE)
+        expense.getShares().removeIf(s -> !allocatedShares.containsKey(s.getMember().getId()));
+
+        // In-place update existing shares (issues SQL UPDATE) or add new shares (issues SQL INSERT)
         for (Map.Entry<Long, Long> entry : allocatedShares.entrySet()) {
-            GroupMemberEntity member = groupMemberRepository.findById(entry.getKey())
-                    .orElseThrow(() -> new ResourceNotFoundException("Member not found: " + entry.getKey()));
-            ExpenseShareEntity share = new ExpenseShareEntity(expense, member, entry.getValue(), null);
-            expense.getShares().add(share);
-            expenseShareRepository.save(share);
+            Long memberId = entry.getKey();
+            Long sharePaise = entry.getValue();
+            Integer pct = percentageMap.get(memberId);
+
+            ExpenseShareEntity existing = existingShareMap.get(memberId);
+            if (existing != null) {
+                existing.setSharePaise(sharePaise);
+                existing.setPercentageBasisPoints(pct);
+            } else {
+                GroupMemberEntity member = groupMemberRepository.findById(memberId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Member not found: " + memberId));
+                ExpenseShareEntity share = new ExpenseShareEntity(expense, member, sharePaise, pct);
+                expense.getShares().add(share);
+            }
         }
 
-        expenseRepository.save(expense);
+        expenseRepository.saveAndFlush(expense);
 
         // Audit log
         activityLogService.logActivity(

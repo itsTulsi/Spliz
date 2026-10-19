@@ -38,7 +38,10 @@ public class BalanceService {
     public BalanceSummaryDto calculateGroupBalances(Long groupId) {
         List<GroupMemberEntity> members = groupMemberRepository.findByGroupIdOrderByIdAsc(groupId);
         List<ExpenseEntity> expenses = expenseRepository.findByGroupId(groupId);
-        List<SettlementEntity> settlements = settlementRepository.findByGroupIdAndStatus(groupId, SettlementStatus.RECORDED);
+        List<SettlementEntity> settlements = settlementRepository.findByGroupIdAndStatusIn(
+            groupId,
+            List.of(SettlementStatus.RECORDED, SettlementStatus.REPORTED_SUCCESS, SettlementStatus.VERIFIED)
+        );
 
         Map<Long, Long> paidExpenses = new HashMap<>();
         Map<Long, Long> sharesOwed = new HashMap<>();

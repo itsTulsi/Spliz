@@ -21,13 +21,16 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final ActivityLogService activityLogService;
+    private final UpiPaymentService upiPaymentService;
 
     public GroupService(GroupRepository groupRepository,
                         GroupMemberRepository groupMemberRepository,
-                        ActivityLogService activityLogService) {
+                        ActivityLogService activityLogService,
+                        UpiPaymentService upiPaymentService) {
         this.groupRepository = groupRepository;
         this.groupMemberRepository = groupMemberRepository;
         this.activityLogService = activityLogService;
+        this.upiPaymentService = upiPaymentService;
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +85,7 @@ public class GroupService {
             throw new ResourceNotFoundException("Group not found with ID: " + groupId);
         }
         return groupMemberRepository.findByGroupIdOrderByDisplayNameAsc(groupId).stream()
-                .map(m -> new MemberDto(m.getId(), m.getGroup().getId(), m.getDisplayName(), m.getJoinedAt()))
+                .map(m -> new MemberDto(m.getId(), m.getGroup().getId(), m.getDisplayName(), m.getUpiId(), m.getJoinedAt()))
                 .collect(Collectors.toList());
     }
 
@@ -96,13 +99,46 @@ public class GroupService {
             throw new BusinessException("A member named '" + name + "' already exists in this group.");
         }
 
-        GroupMemberEntity member = new GroupMemberEntity(group, name);
+        String upiId = dto.getUpiId() != null && !dto.getUpiId().isBlank() ? dto.getUpiId().trim() : null;
+        if (upiId != null) {
+            upiPaymentService.validateUpiId(upiId);
+        }
+
+        GroupMemberEntity member = new GroupMemberEntity(group, name, upiId);
         GroupMemberEntity saved = groupMemberRepository.save(member);
 
         activityLogService.logActivity(group, "MEMBER", saved.getId(),
             ActivityEventType.MEMBER_ADDED, "Member '" + saved.getDisplayName() + "' joined the group.");
 
-        return new MemberDto(saved.getId(), group.getId(), saved.getDisplayName(), saved.getJoinedAt());
+        return new MemberDto(saved.getId(), group.getId(), saved.getDisplayName(), saved.getUpiId(), saved.getJoinedAt());
+    }
+
+    @Transactional
+    public MemberDto updateMember(Long groupId, Long memberId, MemberDto dto) {
+        GroupMemberEntity member = groupMemberRepository.findByIdAndGroupId(memberId, groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found with ID: " + memberId));
+
+        if (dto.getDisplayName() != null && !dto.getDisplayName().isBlank()) {
+            String newName = dto.getDisplayName().trim();
+            if (!newName.equalsIgnoreCase(member.getDisplayName()) &&
+                groupMemberRepository.existsByGroupIdAndDisplayNameIgnoreCase(groupId, newName)) {
+                throw new BusinessException("A member named '" + newName + "' already exists in this group.");
+            }
+            member.setDisplayName(newName);
+        }
+
+        if (dto.getUpiId() != null) {
+            String upiId = dto.getUpiId().trim();
+            if (!upiId.isBlank()) {
+                upiPaymentService.validateUpiId(upiId);
+                member.setUpiId(upiId);
+            } else {
+                member.setUpiId(null);
+            }
+        }
+
+        GroupMemberEntity saved = groupMemberRepository.save(member);
+        return new MemberDto(saved.getId(), groupId, saved.getDisplayName(), saved.getUpiId(), saved.getJoinedAt());
     }
 
     private GroupDto mapToDto(GroupEntity g) {

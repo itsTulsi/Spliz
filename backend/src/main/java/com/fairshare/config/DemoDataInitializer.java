@@ -54,11 +54,11 @@ public class DemoDataInitializer implements CommandLineRunner {
             Instant.now()
         ));
 
-        // 2. Add 4 Members
-        MemberDto rahul = groupService.addMemberToGroup(group.getId(), new MemberDto(null, group.getId(), "Rahul", null));
-        MemberDto priyanshi = groupService.addMemberToGroup(group.getId(), new MemberDto(null, group.getId(), "Priyanshi", null));
-        MemberDto amit = groupService.addMemberToGroup(group.getId(), new MemberDto(null, group.getId(), "Amit", null));
-        MemberDto sneha = groupService.addMemberToGroup(group.getId(), new MemberDto(null, group.getId(), "Sneha", null));
+        // 2. Add 4 Members with sample UPI IDs
+        MemberDto rahul = groupService.addMemberToGroup(group.getId(), new MemberDto(null, group.getId(), "Rahul", "rahul@okhdfcbank", null));
+        MemberDto priyanshi = groupService.addMemberToGroup(group.getId(), new MemberDto(null, group.getId(), "Priyanshi", "priyanshi@okaxis", null));
+        MemberDto amit = groupService.addMemberToGroup(group.getId(), new MemberDto(null, group.getId(), "Amit", "amit@ibl", null));
+        MemberDto sneha = groupService.addMemberToGroup(group.getId(), new MemberDto(null, group.getId(), "Sneha", "sneha@ybl", null));
 
         // 3. Record Initial Shared Expenses
         // Expense 1: Beach Shack Dinner - ₹2,400.00 (240000 paise) paid by Rahul for all 4 people (₹600 each)

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
 </head>
 <body>
   <!-- Global Navigation -->
@@ -131,6 +132,26 @@
 
       <!-- Tab 2: Balances & Settlement Suggestions -->
       <div id="tab-balances" class="tab-content" style="display: none;">
+        <!-- Settle Up Reconciliation Action Banner -->
+        <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.7)); border: 1px solid rgba(16, 185, 129, 0.25);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <h3 class="card-title" style="margin-bottom: 0; color: var(--accent-primary);">⚡ Settle Up & Cancel Mutual Splits</h3>
+                <span class="badge badge-positive" id="settle-up-badge">Settle Up Ready</span>
+              </div>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem; margin-bottom: 0;">
+                Click Settle Up to automatically cancel out mutual offsetting splits between members, remove cancelling expenses from the recorded list, and update Activity History.
+              </p>
+            </div>
+            <div>
+              <button id="btn-settle-up-reconcile" class="btn btn-primary" style="padding: 0.65rem 1.25rem; font-size: 0.9375rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
+                <span>⚡</span> Settle Up
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="grid-cols-12">
           <!-- Member Net Balances -->
           <div class="col-span-6">
@@ -149,8 +170,13 @@
           <div class="col-span-6">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Settlement Optimizer</h3>
-                <span id="optimizer-algo-badge" class="badge badge-positive">Exact Optimal</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <h3 class="card-title" style="margin-bottom: 0;">Settlement Optimizer</h3>
+                  <span id="optimizer-algo-badge" class="badge badge-positive">Exact Optimal</span>
+                </div>
+                <button class="btn btn-primary btn-sm btn-settle-up-trigger" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <span>⚡</span> Settle Up
+                </button>
               </div>
               <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">
                 Suggested transfers calculated to minimize payments while preserving every member's exact net balance.
@@ -293,10 +319,43 @@
             <label class="form-label" for="input-member-name">Member Display Name *</label>
             <input type="text" id="input-member-name" class="form-control" placeholder="e.g. Alice, Rahul, Priyanshi" required>
           </div>
+          <div class="form-group">
+            <label class="form-label" for="input-member-upi">UPI ID (VPA)</label>
+            <input type="text" id="input-member-upi" class="form-control" placeholder="e.g. name@okhdfcbank or 9876543210@paytm">
+            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Used for direct UPI payments and QR code generation when settling up.</span>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-close="modal-add-member">Cancel</button>
           <button type="submit" class="btn btn-primary">Add Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2b. Edit Member / UPI Profile Modal -->
+  <div id="modal-edit-member" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Member Profile & UPI ID</h3>
+        <button class="modal-close" data-close="modal-edit-member">&times;</button>
+      </div>
+      <form id="form-edit-member">
+        <input type="hidden" id="edit-member-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="edit-member-name">Member Display Name *</label>
+            <input type="text" id="edit-member-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-member-upi">UPI ID (Virtual Payment Address) *</label>
+            <input type="text" id="edit-member-upi" class="form-control" placeholder="e.g. username@okhdfcbank" required>
+            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Standard format: identifier@psp (e.g. @okhdfcbank, @okaxis, @ybl, @paytm, @upi)</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="modal-edit-member">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
         </div>
       </form>
     </div>
@@ -372,20 +431,285 @@
               <select id="settle-to" class="form-control form-select" required></select>
             </div>
           </div>
+
+          <!-- Recipient UPI Configuration / Display Box -->
+          <div id="settle-recipient-upi-info" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Recipient's UPI ID:</span>
+                <span id="settle-recipient-upi-display" style="font-family: var(--font-mono); font-weight: 600; color: var(--accent-primary); margin-left: 0.5rem;">Loading...</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-recipient-upi" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Edit UPI</button>
+            </div>
+            <!-- Inline input when UPI is missing or being edited -->
+            <div id="settle-inline-upi-input-container" style="display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-subtle);">
+              <label class="form-label" style="font-size: 0.75rem;">Configure UPI ID for Recipient</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="settle-inline-upi-input" class="form-control form-control-sm" placeholder="e.g. name@okhdfcbank">
+                <button type="button" class="btn btn-primary btn-sm" id="btn-save-inline-upi">Save</button>
+              </div>
+            </div>
+          </div>
+
           <div class="form-group">
             <label class="form-label" for="settle-amount">Amount (₹) *</label>
             <input type="number" step="0.01" min="0.01" id="settle-amount" class="form-control" placeholder="0.00" required>
           </div>
           <div class="form-group">
             <label class="form-label" for="settle-note">Note</label>
-            <input type="text" id="settle-note" class="form-control" placeholder="e.g. UPI transfer reference">
+            <input type="text" id="settle-note" class="form-control" placeholder="e.g. Goa trip settlement">
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
           <button type="button" class="btn btn-secondary" data-close="modal-settle">Cancel</button>
-          <button type="submit" class="btn btn-primary">Confirm Payment</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline" id="btn-settle-direct-cash">Record Cash / Direct</button>
+            <button type="submit" class="btn btn-primary" id="btn-settle-proceed-upi">⚡ Pay via UPI</button>
+          </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 4b. UPI Payment Intent & App Selection Flow Modal -->
+  <div id="modal-upi-flow" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width: 520px;">
+      
+      <!-- Flow Step 1: App Selection & QR View -->
+      <div id="upi-step-select">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">UPI Payment Transfer</h3>
+            <p class="card-subtitle" style="margin: 0; font-size: 0.8125rem;">Select an app on your mobile device or scan QR code</p>
+          </div>
+          <button class="modal-close" data-close="modal-upi-flow">&times;</button>
+        </div>
+
+        <div class="modal-body" style="padding: 1.25rem;">
+          <!-- Payment Summary Card -->
+          <div class="upi-summary-box">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Payment To</span>
+                <div id="upi-summary-recipient-name" style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary);">-</div>
+                <div id="upi-summary-recipient-vpa" style="font-family: var(--font-mono); font-size: 0.8125rem; color: var(--accent-primary);">-</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Amount Due</span>
+                <div id="upi-summary-amount" style="font-family: var(--font-mono); font-size: 1.375rem; font-weight: 700; color: var(--status-positive);">-</div>
+              </div>
+            </div>
+            <div style="font-size: 0.8125rem; color: var(--text-secondary); border-top: 1px solid var(--border-subtle); padding-top: 0.5rem; margin-top: 0.5rem; display: flex; justify-content: space-between;">
+              <span>Payer: <strong id="upi-summary-payer-name" style="color: var(--text-primary);">-</strong></span>
+              <span>Note: <span id="upi-summary-note" style="color: var(--text-primary);">Settlement</span></span>
+            </div>
+          </div>
+
+          <!-- Mode Selector Tabs: Direct App vs QR Code -->
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+            <button type="button" class="btn btn-sm btn-primary" id="btn-upi-mode-apps" style="flex: 1;">📱 Launch UPI App</button>
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-upi-mode-qr" style="flex: 1;">📷 Scan QR Code</button>
+          </div>
+
+          <!-- Mode 1: App Selection Grid -->
+          <div id="upi-container-apps">
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+              Tap an app below to launch payment on this device:
+            </p>
+            <div class="upi-app-grid">
+              <div class="upi-app-card" id="btn-app-gpay" data-app="gpay">
+                <div class="upi-app-icon" style="background: #1a73e8; color: #ffffff;">G</div>
+                <div class="upi-app-name">Google Pay</div>
+              </div>
+              <div class="upi-app-card" id="btn-app-phonepe" data-app="phonepe">
+                <div class="upi-app-icon" style="background: #5f259f; color: #ffffff;">Pe</div>
+                <div class="upi-app-name">PhonePe</div>
+              </div>
+              <div class="upi-app-card" id="btn-app-paytm" data-app="paytm">
+                <div class="upi-app-icon" style="background: #002970; color: #00b9f5;">Pt</div>
+                <div class="upi-app-name">Paytm</div>
+              </div>
+              <div class="upi-app-card" id="btn-app-bhim" data-app="bhim">
+                <div class="upi-app-icon" style="background: #005a9c; color: #00baf2;">BH</div>
+                <div class="upi-app-name">BHIM</div>
+              </div>
+              <div class="upi-app-card" id="btn-app-generic" data-app="generic">
+                <div class="upi-app-icon" style="background: #059669; color: #ffffff;">UPI</div>
+                <div class="upi-app-name">Any UPI App</div>
+              </div>
+            </div>
+            <div class="alert alert-info" style="margin-bottom: 0; padding: 0.625rem 0.875rem; font-size: 0.75rem;">
+              <span>💡 <strong>On Desktop / Laptop?</strong> Switch to the <strong>Scan QR Code</strong> tab to scan with your phone, or open via default UPI handler.</span>
+            </div>
+          </div>
+
+          <!-- Mode 2: QR Code Display -->
+          <div id="upi-container-qr" style="display: none; text-align: center;">
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+              Scan this dynamic UPI QR code with any UPI app on your phone:
+            </p>
+            <div class="upi-qr-card">
+              <div id="upi-qr-svg-wrapper">
+                <!-- SVG injected dynamically -->
+              </div>
+              <div class="upi-qr-caption">Scan to pay exact amount directly</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: space-between;">
+          <button type="button" class="btn btn-secondary" data-close="modal-upi-flow">Cancel</button>
+          <button type="button" class="btn btn-outline" id="btn-to-step2">I've Initiated Payment &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Flow Step 2: Return from UPI App / Manual Confirmation -->
+      <div id="upi-step-confirm" style="display: none;">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">Confirm Payment Status</h3>
+            <span class="upi-status-pill upi-pill-pending">Status: Pending Confirmation</span>
+          </div>
+          <button class="modal-close" data-close="modal-upi-flow">&times;</button>
+        </div>
+
+        <div class="modal-body" style="padding: 1.25rem;">
+          <div class="alert alert-warning" style="font-size: 0.8125rem; line-height: 1.4;">
+            <div>
+              <strong>⚠️ User Confirmation Required:</strong><br>
+              Standard UPI links do not provide automatic bank settlement webhooks without an enterprise payment gateway. Please indicate the outcome of your transaction in the UPI app.
+            </div>
+          </div>
+
+          <div class="upi-summary-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-size: 0.875rem; color: var(--text-secondary);">Transfer Amount</span>
+              <span id="upi-confirm-amount" style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8125rem; color: var(--text-secondary);">
+              <span>To Recipient</span>
+              <span id="upi-confirm-recipient" style="font-weight: 600; color: var(--text-primary);">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.25rem;">
+              <span>Payer (Debtor)</span>
+              <span id="upi-confirm-payer" style="font-weight: 600; color: var(--text-primary);">-</span>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label" for="upi-utr-input" style="font-size: 0.8125rem;">
+              UPI Reference ID / UTR (Optional)
+            </label>
+            <input type="text" id="upi-utr-input" class="form-control form-control-sm" placeholder="e.g. 412356789012 (12-digit transaction number)">
+            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">
+              Found in your UPI app's transaction history / receipt. Helpful for audit integrity.
+            </span>
+          </div>
+
+          <p style="font-size: 0.8125rem; color: var(--text-muted); text-align: center; margin: 0;">
+            Did the payment succeed in your UPI app?
+          </p>
+        </div>
+
+        <div class="modal-footer" style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <div style="display: flex; gap: 0.5rem; width: 100%;">
+            <button type="button" class="btn btn-secondary" id="btn-upi-retry" style="flex: 1;">
+              🔄 Change App / Retry
+            </button>
+            <button type="button" class="btn btn-danger" id="btn-upi-cancel" style="flex: 1;">
+              ✕ Cancelled / Failed
+            </button>
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-upi-success" style="width: 100%; padding: 0.75rem;">
+            ✓ Payment Completed
+            <span class="upi-btn-subtext">Record settlement as User-Reported Success</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. Duplicate Expense Detection & Resolution Modal -->
+  <div id="modal-duplicate-expense" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Matching Entry Found</h3>
+        <button class="modal-close" data-close="modal-duplicate-expense">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--accent-warning, #f59e0b); padding: 0.875rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
+          <div style="font-weight: 600; color: #d97706; margin-bottom: 0.25rem;">Existing Entry Detected</div>
+          <p style="font-size: 0.875rem; color: var(--text-primary); margin: 0;" id="duplicate-warning-text">
+            An expense with the same description/name already exists in this group.
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+          <div style="background: var(--bg-surface-elevated); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem;">Existing Entry</div>
+            <div id="duplicate-existing-desc" style="font-weight: 600; color: var(--text-primary); font-size: 0.9375rem;">-</div>
+            <div id="duplicate-existing-amount" style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--accent-primary); margin: 0.25rem 0;">-</div>
+            <div id="duplicate-existing-payer" style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>
+          </div>
+
+          <div style="background: var(--bg-surface-elevated); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem;">Your Submission</div>
+            <div id="duplicate-new-desc" style="font-weight: 600; color: var(--text-primary); font-size: 0.9375rem;">-</div>
+            <div id="duplicate-new-amount" style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--accent-primary); margin: 0.25rem 0;">-</div>
+            <div id="duplicate-new-payer" style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>
+          </div>
+        </div>
+
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">
+          Would you like to <strong>update the existing entry</strong> with the new amounts and split, or record this as a <strong>new separate entry</strong>?
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary" data-close="modal-duplicate-expense">Cancel</button>
+        <button type="button" class="btn btn-outline" id="btn-duplicate-create-new">Create New Entry</button>
+        <button type="button" class="btn btn-primary" id="btn-duplicate-update-existing">Update Existing Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Settle Up Confirmation Modal -->
+  <div id="modal-settle-up-confirm" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">⚡ Settle Up & Cancel Expenses</h3>
+        <button class="modal-close" data-close="modal-settle-up-confirm">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent-primary, #10b981); padding: 0.875rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
+          <div style="font-weight: 600; color: var(--accent-primary); margin-bottom: 0.25rem;">Mutual Expense Offset Detected</div>
+          <p style="font-size: 0.875rem; color: var(--text-primary); margin: 0;" id="settle-up-modal-summary">
+            The following mutual offsetting expenses will be cancelled with each other, removing them from Recorded Expenses and updating the Activity History.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Expenses to be Cancelled & Removed</label>
+          <div id="settle-up-expenses-list" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; max-height: 240px; overflow-y: auto;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface-elevated); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.875rem; color: var(--text-secondary);">Total Offset Amount:</span>
+          <span id="settle-up-total-amount" style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--accent-primary);">₹0.00</span>
+        </div>
+
+        <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 1rem; margin-bottom: 0;">
+          ℹ️ Running balances will be reconciled for these mutual splits, and an audit record will be logged to the Activity History.
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" data-close="modal-settle-up-confirm">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-settle-up-confirm-execute">
+          <span>⚡</span> Confirm & Settle Up
+        </button>
+      </div>
     </div>
   </div>
 

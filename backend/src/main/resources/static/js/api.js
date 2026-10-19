@@ -20,7 +20,13 @@ export const Api = {
       const data = isJson ? await response.json() : await response.text();
 
       if (!response.ok) {
-        const errorMsg = data?.message || data?.error || `HTTP ${response.status}: ${response.statusText}`;
+        let errorMsg = data?.message || data?.error || `HTTP ${response.status}: ${response.statusText}`;
+        if (data?.validationErrors && typeof data.validationErrors === 'object') {
+          const details = Object.entries(data.validationErrors).map(([k, v]) => `${k}: ${v}`).join('; ');
+          if (details) {
+            errorMsg = details;
+          }
+        }
         const err = new Error(errorMsg);
         err.status = response.status;
         err.data = data;
@@ -111,6 +117,29 @@ export const Api = {
     return this.request(`/groups/${groupId}/settlements`, {
       method: 'POST',
       body: JSON.stringify(payload),
+    });
+  },
+  initiateUpiPayment(groupId, payload) {
+    return this.request(`/groups/${groupId}/settlements/initiate`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+  confirmSettlementPayment(groupId, settlementId, payload) {
+    return this.request(`/groups/${groupId}/settlements/${settlementId}/confirm`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+  getSettlement(groupId, settlementId) {
+    return this.request(`/groups/${groupId}/settlements/${settlementId}`);
+  },
+  previewSettleUp(groupId) {
+    return this.request(`/groups/${groupId}/settlements/settle-up/preview`);
+  },
+  executeSettleUp(groupId) {
+    return this.request(`/groups/${groupId}/settlements/settle-up`, {
+      method: 'POST',
     });
   },
 

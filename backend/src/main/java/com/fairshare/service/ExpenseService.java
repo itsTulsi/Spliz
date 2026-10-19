@@ -2,6 +2,7 @@ package com.fairshare.service;
 
 import com.fairshare.dto.CreateExpenseRequest;
 import com.fairshare.dto.ExpenseResponseDto;
+import com.fairshare.dto.ShareInputDto;
 import com.fairshare.dto.ShareResponseDto;
 import com.fairshare.entity.ExpenseEntity;
 import com.fairshare.entity.ExpenseShareEntity;
@@ -70,6 +71,15 @@ public class ExpenseService {
         // Calculate and validate shares according to method
         Map<Long, Long> shareMap = computeShares(request, groupId);
 
+        Map<Long, Integer> percentageMap = new HashMap<>();
+        if (request.getShares() != null) {
+            for (ShareInputDto s : request.getShares()) {
+                if (s.getMemberId() != null && s.getPercentageBasisPoints() != null) {
+                    percentageMap.put(s.getMemberId(), s.getPercentageBasisPoints());
+                }
+            }
+        }
+
         ExpenseEntity expense = new ExpenseEntity(
             group,
             request.getDescription().trim(),
@@ -79,15 +89,14 @@ public class ExpenseService {
             request.getOccurredAt()
         );
 
-        ExpenseEntity savedExpense = expenseRepository.save(expense);
-
         for (Map.Entry<Long, Long> entry : shareMap.entrySet()) {
             GroupMemberEntity shareMember = groupMemberRepository.findByIdAndGroupId(entry.getKey(), groupId)
                     .orElseThrow(() -> new BusinessException("Participant member ID " + entry.getKey() + " does not belong to group"));
-            ExpenseShareEntity share = new ExpenseShareEntity(savedExpense, shareMember, entry.getValue(), null);
-            savedExpense.getShares().add(share);
-            expenseShareRepository.save(share);
+            ExpenseShareEntity share = new ExpenseShareEntity(expense, shareMember, entry.getValue(), percentageMap.get(entry.getKey()));
+            expense.getShares().add(share);
         }
+
+        ExpenseEntity savedExpense = expenseRepository.saveAndFlush(expense);
 
         activityLogService.logActivity(
             group,
@@ -114,6 +123,15 @@ public class ExpenseService {
 
         Map<Long, Long> shareMap = computeShares(request, groupId);
 
+        Map<Long, Integer> percentageMap = new HashMap<>();
+        if (request.getShares() != null) {
+            for (ShareInputDto s : request.getShares()) {
+                if (s.getMemberId() != null && s.getPercentageBasisPoints() != null) {
+                    percentageMap.put(s.getMemberId(), s.getPercentageBasisPoints());
+                }
+            }
+        }
+
         expense.setDescription(request.getDescription().trim());
         expense.setAmountPaise(request.getAmountPaise());
         expense.setPaidByMember(payer);
@@ -122,18 +140,32 @@ public class ExpenseService {
             expense.setOccurredAt(request.getOccurredAt());
         }
 
-        expenseShareRepository.deleteByExpenseId(expenseId);
-        expense.getShares().clear();
+        // Map existing shares by member ID to perform in-place updates without unique constraint conflicts
+        Map<Long, ExpenseShareEntity> existingShareMap = expense.getShares().stream()
+                .collect(Collectors.toMap(s -> s.getMember().getId(), s -> s));
 
+        // Remove shares for members no longer participating (orphanRemoval will issue SQL DELETE)
+        expense.getShares().removeIf(s -> !shareMap.containsKey(s.getMember().getId()));
+
+        // In-place update existing shares (issues SQL UPDATE) or add new shares (issues SQL INSERT)
         for (Map.Entry<Long, Long> entry : shareMap.entrySet()) {
-            GroupMemberEntity shareMember = groupMemberRepository.findByIdAndGroupId(entry.getKey(), groupId)
-                    .orElseThrow(() -> new BusinessException("Participant does not belong to group: " + entry.getKey()));
-            ExpenseShareEntity share = new ExpenseShareEntity(expense, shareMember, entry.getValue(), null);
-            expense.getShares().add(share);
-            expenseShareRepository.save(share);
+            Long memberId = entry.getKey();
+            Long sharePaise = entry.getValue();
+            Integer pct = percentageMap.get(memberId);
+
+            ExpenseShareEntity existing = existingShareMap.get(memberId);
+            if (existing != null) {
+                existing.setSharePaise(sharePaise);
+                existing.setPercentageBasisPoints(pct);
+            } else {
+                GroupMemberEntity shareMember = groupMemberRepository.findByIdAndGroupId(memberId, groupId)
+                        .orElseThrow(() -> new BusinessException("Participant does not belong to group: " + memberId));
+                ExpenseShareEntity share = new ExpenseShareEntity(expense, shareMember, sharePaise, pct);
+                expense.getShares().add(share);
+            }
         }
 
-        ExpenseEntity saved = expenseRepository.save(expense);
+        ExpenseEntity saved = expenseRepository.saveAndFlush(expense);
 
         activityLogService.logActivity(
             saved.getGroup(),
