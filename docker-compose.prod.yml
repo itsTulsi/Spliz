@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fairshare-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: fairshare-db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-fairshare_db}
+      DB_USER: ${DB_USER:-fairshare_user}
+      DB_PASSWORD: ${DB_PASSWORD:-fairshare_secret_2026}
+      SERVER_PORT: 8080
+    depends_on:
+      fairshare-db:
+        condition: service_healthy
+    networks:
+      - fairshare-network
+
+  fairshare-db:
+    image: postgres:16-alpine
+    container_name: fairshare-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-fairshare_db}
+      POSTGRES_USER: ${DB_USER:-fairshare_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fairshare_secret_2026}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fairshare_user} -d ${DB_NAME:-fairshare_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fairshare-network
+
+volumes:
+  postgres_prod_data:
+    driver: local
+
+networks:
+  fairshare-network:
+    driver: bridge

@@ -1,0 +1,18 @@
+databases:
+  - name: fairshare-db
+    databaseName: fairshare_db
+    user: fairshare_user
+    plan: free
+
+services:
+  - type: web
+    name: spliz-app
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: fairshare-db
+          property: connectionString
