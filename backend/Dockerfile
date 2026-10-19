@@ -6,7 +6,6 @@ WORKDIR /app
 COPY mvnw mvnw.cmd pom.xml ./
 COPY .mvn .mvn
 RUN chmod +x ./mvnw
-RUN ./mvnw dependency:go-offline -B
 
 # Copy project source code (includes frontend assets in src/main/resources/static)
 COPY src ./src
