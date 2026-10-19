@@ -8,18 +8,24 @@ const State = {
   members: [],
   expenses: [],
   balances: [],
+  suggestions: null,
   activeExpenseForSim: null,
   simProposal: null,
 };
 
 // DOM References
 const elements = {
+  navGroupsLink: document.getElementById('nav-groups-link'),
+  navSimLink: document.getElementById('nav-sim-link'),
+  navSettleLink: document.getElementById('nav-settle-link'),
   viewGroups: document.getElementById('view-groups'),
   viewGroupDetail: document.getElementById('view-group-detail'),
   groupsGrid: document.getElementById('groups-grid'),
   btnOpenCreateGroup: document.getElementById('btn-open-create-group'),
   btnQuickNewGroup: document.getElementById('btn-quick-new-group'),
   btnBackToGroups: document.getElementById('btn-back-to-groups'),
+  btnHeaderSim: document.getElementById('btn-header-sim'),
+  btnHeaderSettle: document.getElementById('btn-header-settle'),
   detailGroupName: document.getElementById('detail-group-name'),
   detailGroupDesc: document.getElementById('detail-group-desc'),
   detailTotalSpend: document.getElementById('detail-total-spend'),
@@ -59,8 +65,28 @@ const elements = {
  * Initialize Event Handlers
  */
 function init() {
-  // Navigation & Tabs
+  // Top Navbar Navigation
+  elements.navGroupsLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showGroupsView();
+  });
+
+  elements.navSimLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openSimulatorSection();
+  });
+
+  elements.navSettleLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openSettleUpSection();
+  });
+
+  // Group Header Quick Actions
   elements.btnBackToGroups?.addEventListener('click', showGroupsView);
+  elements.btnHeaderSim?.addEventListener('click', () => switchTab('tab-simulator'));
+  elements.btnHeaderSettle?.addEventListener('click', () => switchTab('tab-balances'));
+
+  // Modals Openers
   elements.btnOpenCreateGroup?.addEventListener('click', () => openModal('modal-create-group'));
   elements.btnQuickNewGroup?.addEventListener('click', () => openModal('modal-create-group'));
   elements.btnOpenAddMember?.addEventListener('click', () => openModal('modal-add-member'));
@@ -72,14 +98,11 @@ function init() {
     btn.addEventListener('click', () => closeModal(btn.getAttribute('data-close')));
   });
 
-  // Tab switching
+  // Tab switching within group view
   document.querySelectorAll('[data-tab]').forEach(tabBtn => {
     tabBtn.addEventListener('click', () => {
-      document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-      tabBtn.classList.add('active');
-      const target = document.getElementById(tabBtn.getAttribute('data-tab'));
-      if (target) target.style.display = 'block';
+      const tabId = tabBtn.getAttribute('data-tab');
+      switchTab(tabId);
     });
   });
 
@@ -94,13 +117,80 @@ function init() {
 
   // Simulator Events
   elements.simExpenseSelect?.addEventListener('change', handleSimExpenseSelect);
+  elements.simMethodSelect?.addEventListener('change', handleSimExpenseSelect);
   elements.btnRunSim?.addEventListener('click', handleRunSimulation);
   elements.btnResetSim?.addEventListener('click', resetSimulation);
   elements.btnDiscardSim?.addEventListener('click', resetSimulation);
   elements.btnApplySim?.addEventListener('click', handleApplySimulation);
 
-  // Load Initial Groups
-  loadGroups();
+  // Browser hash routing support
+  window.addEventListener('hashchange', handleHashRouting);
+
+  // Initial Data Load
+  loadGroups().then(() => {
+    handleHashRouting();
+  });
+}
+
+/**
+ * Hash Routing Handler
+ */
+function handleHashRouting() {
+  const hash = window.location.hash;
+  if (hash === '#simulator') {
+    openSimulatorSection();
+  } else if (hash === '#settle') {
+    openSettleUpSection();
+  } else if (hash === '#groups' || !hash) {
+    if (!State.currentGroupId) {
+      showGroupsView();
+    }
+  }
+}
+
+/**
+ * Top Navbar Section Openers
+ */
+async function openSimulatorSection() {
+  window.location.hash = '#simulator';
+  if (!State.currentGroupId) {
+    if (!State.groups || State.groups.length === 0) {
+      try {
+        State.groups = await Api.getGroups() || [];
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    if (State.groups && State.groups.length > 0) {
+      await showGroupDetailView(State.groups[0].id, 'tab-simulator');
+    } else {
+      showToast('Please create a group first to run split simulations.', 'info');
+      showGroupsView();
+    }
+  } else {
+    switchTab('tab-simulator');
+  }
+}
+
+async function openSettleUpSection() {
+  window.location.hash = '#settle';
+  if (!State.currentGroupId) {
+    if (!State.groups || State.groups.length === 0) {
+      try {
+        State.groups = await Api.getGroups() || [];
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    if (State.groups && State.groups.length > 0) {
+      await showGroupDetailView(State.groups[0].id, 'tab-balances');
+    } else {
+      showToast('Please create a group first to view balances and settlements.', 'info');
+      showGroupsView();
+    }
+  } else {
+    switchTab('tab-balances');
+  }
 }
 
 /**
@@ -110,14 +200,47 @@ function showGroupsView() {
   State.currentGroupId = null;
   elements.viewGroupDetail.classList.remove('active');
   elements.viewGroups.classList.add('active');
+  updateNavbarActive('nav-groups-link');
   loadGroups();
 }
 
-function showGroupDetailView(groupId) {
+async function showGroupDetailView(groupId, targetTab = 'tab-expenses') {
   State.currentGroupId = groupId;
   elements.viewGroups.classList.remove('active');
   elements.viewGroupDetail.classList.add('active');
-  loadGroupDetails(groupId);
+  await loadGroupDetails(groupId);
+  switchTab(targetTab);
+}
+
+/**
+ * Switch Active Tab inside Group View
+ */
+function switchTab(tabId) {
+  document.querySelectorAll('[data-tab]').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.style.display = (c.id === tabId) ? 'block' : 'none';
+  });
+
+  if (tabId === 'tab-simulator') {
+    updateNavbarActive('nav-sim-link');
+    // Auto-select first expense if none selected
+    if (elements.simExpenseSelect && (!elements.simExpenseSelect.value || elements.simExpenseSelect.value === '') && State.expenses.length > 0) {
+      elements.simExpenseSelect.value = State.expenses[0].id;
+      handleSimExpenseSelect();
+    }
+  } else if (tabId === 'tab-balances') {
+    updateNavbarActive('nav-settle-link');
+  } else {
+    updateNavbarActive('nav-groups-link');
+  }
+}
+
+function updateNavbarActive(activeNavId) {
+  document.querySelectorAll('.navbar .nav-link').forEach(link => {
+    link.classList.toggle('active', link.id === activeNavId);
+  });
 }
 
 /**
@@ -144,25 +267,59 @@ async function loadGroups() {
     }
 
     elements.groupsGrid.innerHTML = State.groups.map(group => `
-      <div class="col-span-4 card" style="cursor: pointer;" data-group-id="${group.id}">
-        <div class="card-header">
-          <h3 class="card-title">${escapeHtml(group.name)}</h3>
-          <span class="badge badge-neutral">${group.currencyCode || 'INR'}</span>
+      <div class="col-span-4 card group-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="card-header">
+            <h3 class="card-title">${escapeHtml(group.name)}</h3>
+            <span class="badge badge-neutral">${group.currencyCode || 'INR'}</span>
+          </div>
+          <p class="card-subtitle" style="min-height: 2.5rem;">${escapeHtml(group.description || 'No description')}</p>
+          <div style="margin-top: 0.75rem; font-size: 0.8125rem; color: var(--text-muted);">
+            👥 ${group.memberCount || 0} members enrolled
+          </div>
         </div>
-        <p class="card-subtitle" style="min-height: 2.5rem;">${escapeHtml(group.description || 'No description')}</p>
-        <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 0.875rem;">
-          <span style="font-size: 0.8125rem; color: var(--text-muted);">${group.memberCount || 0} members</span>
-          <span style="font-weight: 600; color: var(--accent-primary);">Open Group →</span>
+
+        <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+          <button class="btn btn-primary btn-sm btn-open-group" data-group-id="${group.id}">
+            Open Group Overview →
+          </button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-secondary btn-sm btn-quick-sim" data-group-id="${group.id}" style="flex: 1;">
+              ⚖️ Simulator
+            </button>
+            <button class="btn btn-secondary btn-sm btn-quick-settle" data-group-id="${group.id}" style="flex: 1;">
+              💸 Settle Up
+            </button>
+          </div>
         </div>
       </div>
     `).join('');
 
-    elements.groupsGrid.querySelectorAll('[data-group-id]').forEach(card => {
-      card.addEventListener('click', () => {
-        const id = card.getAttribute('data-group-id');
-        showGroupDetailView(id);
+    // Attach Click Handlers to Card Buttons
+    elements.groupsGrid.querySelectorAll('.btn-open-group').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-group-id');
+        showGroupDetailView(id, 'tab-expenses');
       });
     });
+
+    elements.groupsGrid.querySelectorAll('.btn-quick-sim').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-group-id');
+        showGroupDetailView(id, 'tab-simulator');
+      });
+    });
+
+    elements.groupsGrid.querySelectorAll('.btn-quick-settle').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-group-id');
+        showGroupDetailView(id, 'tab-balances');
+      });
+    });
+
   } catch (err) {
     elements.groupsGrid.innerHTML = `
       <div class="col-span-12 alert alert-warning">
@@ -182,7 +339,7 @@ async function handleCreateGroup(e) {
     closeModal('modal-create-group');
     elements.formCreateGroup.reset();
     showToast(`Group "${created.name}" created successfully!`, 'success');
-    showGroupDetailView(created.id);
+    showGroupDetailView(created.id, 'tab-expenses');
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -205,6 +362,7 @@ async function loadGroupDetails(groupId) {
     State.members = members || [];
     State.expenses = expenses || [];
     State.balances = balances?.balances || [];
+    State.suggestions = suggestions || null;
 
     // Header info
     elements.detailGroupName.textContent = group.name;
@@ -213,6 +371,12 @@ async function loadGroupDetails(groupId) {
 
     const totalSpendPaise = State.expenses.reduce((sum, exp) => sum + exp.amountPaise, 0);
     elements.detailTotalSpend.textContent = formatCurrency(totalSpendPaise);
+
+    // Calculate unsettled balance sum (total positive balances)
+    const unsettledPaise = State.balances
+      .filter(b => b.netBalancePaise > 0)
+      .reduce((sum, b) => sum + b.netBalancePaise, 0);
+    elements.detailUnsettledSum.textContent = formatCurrency(unsettledPaise);
 
     // Render Subsections
     renderExpensesTable(State.expenses);
@@ -371,7 +535,7 @@ async function handleSaveExpense(e) {
       if (val > 0) {
         shares.push({
           memberId: parseInt(inp.getAttribute('data-member-id'), 10),
-          percentageBasisPoints: Math.round(val * 100), // 100% = 10000 bp
+          percentageBasisPoints: Math.round(val * 100),
         });
       }
     });
@@ -400,7 +564,7 @@ function renderExpensesTable(expenses) {
     elements.expensesTbody.innerHTML = `
       <tr>
         <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-          No expenses recorded in this group yet.
+          No expenses recorded in this group yet. Click <strong>+ Add Expense</strong> to begin.
         </td>
       </tr>
     `;
@@ -419,8 +583,11 @@ function renderExpensesTable(expenses) {
           ${formatCurrency(exp.amountPaise)}
         </td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="window.fairshareEditExpense(${exp.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="window.fairshareDeleteExpense(${exp.id})" style="margin-left: 0.25rem;">Delete</button>
+          <div style="display: flex; gap: 0.375rem;">
+            <button class="btn btn-secondary btn-sm" onclick="window.fairshareEditExpense(${exp.id})">Edit</button>
+            <button class="btn btn-outline btn-sm" onclick="window.fairshareSimulateExpense(${exp.id})">Simulate</button>
+            <button class="btn btn-danger btn-sm" onclick="window.fairshareDeleteExpense(${exp.id})">Delete</button>
+          </div>
         </td>
       </tr>
     `;
@@ -430,6 +597,14 @@ function renderExpensesTable(expenses) {
 window.fairshareEditExpense = (id) => {
   const expense = State.expenses.find(e => e.id === id);
   if (expense) prepareExpenseModal(expense);
+};
+
+window.fairshareSimulateExpense = (id) => {
+  switchTab('tab-simulator');
+  if (elements.simExpenseSelect) {
+    elements.simExpenseSelect.value = id;
+    handleSimExpenseSelect();
+  }
 };
 
 window.fairshareDeleteExpense = async (id) => {
@@ -448,7 +623,7 @@ window.fairshareDeleteExpense = async (id) => {
  */
 function renderBalances(balances) {
   if (!balances || balances.length === 0) {
-    elements.balancesListContainer.innerHTML = '<p class="text-muted">No balances available.</p>';
+    elements.balancesListContainer.innerHTML = '<p class="text-muted" style="padding: 1rem;">No balances available.</p>';
     return;
   }
 
@@ -456,13 +631,13 @@ function renderBalances(balances) {
     const isCreditor = b.netBalancePaise > 0;
     const isDebtor = b.netBalancePaise < 0;
     const badgeClass = isCreditor ? 'badge-positive' : isDebtor ? 'badge-negative' : 'badge-neutral';
-    const statusText = isCreditor ? 'Owed' : isDebtor ? 'Owes' : 'Settled';
+    const statusText = isCreditor ? 'Owed to member' : isDebtor ? 'Owes to group' : 'Settled';
 
     return `
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.875rem 0; border-bottom: 1px solid var(--border-subtle);">
         <div>
-          <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(b.displayName)}</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted);">${statusText}</div>
+          <div style="font-weight: 600; color: var(--text-primary); font-size: 0.9375rem;">${escapeHtml(b.displayName)}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.125rem;">${statusText}</div>
         </div>
         <div style="text-align: right;">
           <span class="badge ${badgeClass}" style="font-family: var(--font-mono); font-size: 0.875rem;">
@@ -484,15 +659,17 @@ function renderSettlementSuggestions(suggestionsData) {
 
   if (transfers.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-        <p>🎉 All balances are settled! No payments required.</p>
+      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎉</div>
+        <div style="font-weight: 600; color: var(--text-primary);">All balances are settled!</div>
+        <div style="font-size: 0.8125rem; margin-top: 0.25rem;">No outstanding debts or payments required.</div>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = transfers.map((t, idx) => `
-    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.875rem; background: var(--bg-surface-elevated); border-radius: var(--radius-sm); margin-bottom: 0.75rem;">
+  container.innerHTML = transfers.map((t) => `
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.875rem; background: var(--bg-surface-elevated); border-radius: var(--radius-sm); margin-bottom: 0.75rem; border: 1px solid var(--border-subtle);">
       <div>
         <span style="font-weight: 600; color: var(--status-negative);">${escapeHtml(t.fromMemberName)}</span>
         <span style="color: var(--text-muted); margin: 0 0.5rem;">pays</span>
@@ -567,6 +744,12 @@ function populateSimulatorExpenseOptions(expenses) {
       <option value="${e.id}">${escapeHtml(e.description)} (${formatCurrency(e.amountPaise)})</option>
     `).join('')}
   `;
+
+  // Auto-select first expense if available
+  if (expenses && expenses.length > 0 && !elements.simExpenseSelect.value) {
+    elements.simExpenseSelect.value = expenses[0].id;
+    handleSimExpenseSelect();
+  }
 }
 
 function handleSimExpenseSelect() {
@@ -574,17 +757,50 @@ function handleSimExpenseSelect() {
   State.activeExpenseForSim = State.expenses.find(e => e.id === expenseId);
 
   if (!State.activeExpenseForSim) {
-    elements.simParticipantsList.innerHTML = '';
+    elements.simParticipantsList.innerHTML = '<span style="color: var(--text-muted); font-size: 0.875rem;">Please select an expense above.</span>';
     return;
   }
 
-  // Populate participant selection
-  elements.simParticipantsList.innerHTML = State.members.map(m => `
-    <label style="display: inline-flex; align-items: center; gap: 0.375rem; background: var(--bg-surface); padding: 0.375rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.875rem;">
-      <input type="checkbox" name="sim-participant" value="${m.id}" checked>
-      <span>${escapeHtml(m.displayName)}</span>
-    </label>
-  `).join('');
+  // Pre-select existing participants from expense shares
+  const existingParticipantIds = new Set(
+    (State.activeExpenseForSim.shares || []).map(s => s.memberId)
+  );
+
+  const method = elements.simMethodSelect.value;
+
+  if (method === 'EQUAL') {
+    elements.simParticipantsList.innerHTML = State.members.map(m => `
+      <label style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--bg-surface); padding: 0.5rem 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.875rem; cursor: pointer;">
+        <input type="checkbox" name="sim-participant" value="${m.id}" ${existingParticipantIds.has(m.id) ? 'checked' : ''}>
+        <span>${escapeHtml(m.displayName)}</span>
+      </label>
+    `).join('');
+  } else if (method === 'EXACT') {
+    elements.simParticipantsList.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; width: 100%;">
+        ${State.members.map(m => `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--bg-surface); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <span style="font-size: 0.875rem;">${escapeHtml(m.displayName)}</span>
+            <input type="number" step="0.01" min="0" placeholder="0.00" class="form-control form-control-sm sim-exact-input" data-member-id="${m.id}" style="max-width: 100px; text-align: right;">
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else if (method === 'PERCENTAGE') {
+    elements.simParticipantsList.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; width: 100%;">
+        ${State.members.map(m => `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--bg-surface); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <span style="font-size: 0.875rem;">${escapeHtml(m.displayName)}</span>
+            <div style="display: flex; align-items: center; gap: 0.25rem;">
+              <input type="number" step="0.01" min="0" max="100" placeholder="0" class="form-control form-control-sm sim-percent-input" data-member-id="${m.id}" style="max-width: 80px; text-align: right;">
+              <span style="color: var(--text-muted); font-size: 0.8125rem;">%</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
 }
 
 async function handleRunSimulation() {
@@ -594,24 +810,51 @@ async function handleRunSimulation() {
   }
 
   const method = elements.simMethodSelect.value;
-  const selectedParticipantIds = Array.from(document.querySelectorAll('input[name="sim-participant"]:checked'))
-    .map(cb => parseInt(cb.value, 10));
-
-  if (selectedParticipantIds.length === 0) {
-    showToast('At least one participant must be selected.', 'error');
-    return;
-  }
-
   const payload = {
     amountPaise: State.activeExpenseForSim.amountPaise,
     splitMethod: method,
-    participantMemberIds: selectedParticipantIds,
   };
+
+  if (method === 'EQUAL') {
+    const selectedParticipantIds = Array.from(document.querySelectorAll('input[name="sim-participant"]:checked'))
+      .map(cb => parseInt(cb.value, 10));
+
+    if (selectedParticipantIds.length === 0) {
+      showToast('At least one participant must be selected.', 'error');
+      return;
+    }
+    payload.participantMemberIds = selectedParticipantIds;
+  } else if (method === 'EXACT') {
+    const shares = [];
+    document.querySelectorAll('.sim-exact-input').forEach(inp => {
+      const val = parseFloat(inp.value) || 0;
+      if (val > 0) {
+        shares.push({
+          memberId: parseInt(inp.getAttribute('data-member-id'), 10),
+          sharePaise: Math.round(val * 100),
+        });
+      }
+    });
+    payload.shares = shares;
+  } else if (method === 'PERCENTAGE') {
+    const shares = [];
+    document.querySelectorAll('.sim-percent-input').forEach(inp => {
+      const val = parseFloat(inp.value) || 0;
+      if (val > 0) {
+        shares.push({
+          memberId: parseInt(inp.getAttribute('data-member-id'), 10),
+          percentageBasisPoints: Math.round(val * 100),
+        });
+      }
+    });
+    payload.shares = shares;
+  }
 
   try {
     const preview = await Api.previewSplit(State.activeExpenseForSim.id, payload);
     State.simProposal = { expenseId: State.activeExpenseForSim.id, payload, preview };
     renderSimulationComparison(preview);
+    showToast('Scenario preview generated!', 'info');
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -619,6 +862,8 @@ async function handleRunSimulation() {
 
 function renderSimulationComparison(preview) {
   elements.simResultsBox.style.display = 'block';
+  elements.simResultsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
   const currentShares = preview.currentShares || [];
   const proposedShares = preview.proposedShares || [];
 
@@ -648,16 +893,17 @@ function resetSimulation() {
   State.simProposal = null;
   elements.simResultsBox.style.display = 'none';
   elements.simExpenseSelect.value = '';
-  elements.simParticipantsList.innerHTML = '';
+  elements.simParticipantsList.innerHTML = '<span style="color: var(--text-muted); font-size: 0.875rem;">Please select an expense above.</span>';
 }
 
 async function handleApplySimulation() {
   if (!State.simProposal) return;
   try {
     await Api.applySplit(State.simProposal.expenseId, State.simProposal.payload);
-    showToast('Scenario applied successfully!', 'success');
+    showToast('Scenario confirmed and applied successfully!', 'success');
     resetSimulation();
     loadGroupDetails(State.currentGroupId);
+    switchTab('tab-expenses');
   } catch (err) {
     showToast(err.message, 'error');
   }
