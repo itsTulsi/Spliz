@@ -1,6 +1,6 @@
 # FairShare Intelligence — Expense Splitter & Settlement Optimizer
 
-**Presenter / Project Owner:** Tulsi  
+**Presenter / Project Owner:** Tulsi and Kavya Verma
 **Category:** Full-Stack Web Application  
 **Evaluation Audience:** College Project Evaluation  
 **Architecture:** Spring Boot 3 (Java 21/25 LTS) + Docker Desktop PostgreSQL 16 + Vanilla HTML5/CSS3/ES6+ UI  
