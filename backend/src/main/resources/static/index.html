@@ -75,6 +75,7 @@
             <button class="btn btn-outline btn-sm" id="btn-header-settle">💸 Settle Up</button>
             <button class="btn btn-secondary btn-sm" id="btn-open-add-member">+ Member</button>
             <button class="btn btn-primary btn-sm" id="btn-open-add-expense">+ Add Expense</button>
+            <button class="btn btn-danger btn-sm" id="btn-header-delete-group" title="Permanently delete this group">🗑️ Delete Group</button>
           </div>
         </div>
 
@@ -708,6 +709,47 @@
         <button type="button" class="btn btn-secondary" data-close="modal-settle-up-confirm">Cancel</button>
         <button type="button" class="btn btn-primary" id="btn-settle-up-confirm-execute">
           <span>⚡</span> Confirm & Settle Up
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 7. Delete Group Confirmation Modal -->
+  <div id="modal-delete-group" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">⚠️ Delete Group</h3>
+        <button class="modal-close" data-close="modal-delete-group">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger" style="margin-bottom: 1.25rem;">
+          <div>
+            <div style="font-weight: 700; font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.25rem;">
+              PERMANENT GROUP PURGE
+            </div>
+            <p style="margin: 0; font-size: 0.875rem;">
+              Are you sure you want to delete <strong id="delete-group-modal-name" style="color: #ffffff; text-decoration: underline;">this group</strong>?
+            </p>
+          </div>
+        </div>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.5;">
+          This will permanently wipe all associated records for this group:
+        </p>
+        <ul style="font-size: 0.8125rem; font-family: var(--font-mono); color: var(--text-muted); list-style: disc; padding-left: 1.25rem; margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.25rem;">
+          <li>All member profiles & UPI configs</li>
+          <li>All recorded expenses & participant shares</li>
+          <li>All settlement transactions & receipt logs</li>
+          <li>Complete activity history & zero-sum audit trail</li>
+        </ul>
+        <p style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--status-warning); margin: 0;">
+          ⚠️ THIS ACTION CANNOT BE UNDONE.
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" data-close="modal-delete-group">Cancel</button>
+        <button type="button" class="btn btn-danger" id="btn-confirm-delete-group">
+          🗑️ Permanently Delete Group
         </button>
       </div>
     </div>

@@ -7,8 +7,10 @@ import com.fairshare.entity.GroupMemberEntity;
 import com.fairshare.enums.ActivityEventType;
 import com.fairshare.exception.BusinessException;
 import com.fairshare.exception.ResourceNotFoundException;
+import com.fairshare.repository.ActivityLogRepository;
 import com.fairshare.repository.GroupMemberRepository;
 import com.fairshare.repository.GroupRepository;
+import com.fairshare.repository.SettlementRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,15 +24,21 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final ActivityLogService activityLogService;
     private final UpiPaymentService upiPaymentService;
+    private final SettlementRepository settlementRepository;
+    private final ActivityLogRepository activityLogRepository;
 
     public GroupService(GroupRepository groupRepository,
                         GroupMemberRepository groupMemberRepository,
                         ActivityLogService activityLogService,
-                        UpiPaymentService upiPaymentService) {
+                        UpiPaymentService upiPaymentService,
+                        SettlementRepository settlementRepository,
+                        ActivityLogRepository activityLogRepository) {
         this.groupRepository = groupRepository;
         this.groupMemberRepository = groupMemberRepository;
         this.activityLogService = activityLogService;
         this.upiPaymentService = upiPaymentService;
+        this.settlementRepository = settlementRepository;
+        this.activityLogRepository = activityLogRepository;
     }
 
     @Transactional(readOnly = true)
@@ -75,6 +83,8 @@ public class GroupService {
         if (!groupRepository.existsById(id)) {
             throw new ResourceNotFoundException("Group not found with ID: " + id);
         }
+        settlementRepository.deleteByGroupId(id);
+        activityLogRepository.deleteByGroupId(id);
         groupRepository.deleteById(id);
     }
 

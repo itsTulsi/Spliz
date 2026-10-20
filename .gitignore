@@ -24,3 +24,8 @@ target/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Local database files
+data/
+*.mv.db
+*.trace.db
