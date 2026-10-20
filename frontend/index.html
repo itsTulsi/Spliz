@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+ 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -12,7 +13,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/responsive.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>âš–ï¸</text></svg>">
+  <link rel="stylesheet" href="css/spliz-theme.css">
 </head>
 <body>
   <!-- Global Navigation -->
@@ -27,15 +28,19 @@
         <a href="#simulator" class="nav-link" id="nav-sim-link">Fairness Simulator</a>
         <a href="#settle" class="nav-link" id="nav-settle-link">Settle Up</a>
       </nav>
-      <div class="nav-actions">
-        <button class="btn btn-secondary btn-sm" id="btn-quick-new-group">+ New Group</button>
+      <div class="nav-actions spliz-mode-controls">
+        <div class="spliz-mode-switch" role="group" aria-label="Design mode">
+          <button type="button" class="spliz-mode-btn active" data-spliz-mode="friends" aria-pressed="true">Friends</button>
+          <button type="button" class="spliz-mode-btn" data-spliz-mode="professional" aria-pressed="false">Professional</button>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-spliz-theme" aria-label="Switch light or dark theme">Dark Theme</button>
+        <button class="btn btn-secondary btn-sm" id="btn-quick-new-group">New Group</button>
       </div>
     </div>
   </header>
 
   <!-- Main View Container -->
   <main class="main-content app-container">
-    
     <!-- View 1: Groups Dashboard -->
     <section id="view-groups" class="view-section active">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -43,12 +48,9 @@
           <h1 style="font-size: 1.875rem; font-weight: 700;">Expense Groups</h1>
           <p style="color: var(--text-secondary); margin-top: 0.25rem;">Select a group to manage expenses, simulate fair splits, and optimize debts.</p>
         </div>
-        <button class="btn btn-primary" id="btn-open-create-group">+ Create Group</button>
+        <button class="btn btn-primary" id="btn-open-create-group">Create Group</button>
       </div>
-
-      <!-- Groups Grid -->
       <div id="groups-grid" class="grid-cols-12">
-        <!-- Rendered by app.js -->
         <div class="col-span-12">
           <div class="loading-spinner"></div>
         </div>
@@ -57,32 +59,29 @@
 
     <!-- View 2: Group Details Workbench -->
     <section id="view-group-detail" class="view-section">
-      <!-- Breadcrumb & Back -->
       <div style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
-        <button class="btn btn-secondary btn-sm" id="btn-back-to-groups">â† Back to Groups</button>
-        <div id="group-currency-tag" class="badge badge-neutral">INR (â‚¹)</div>
+        <button class="btn btn-secondary btn-sm" id="btn-back-to-groups">Back to Groups</button>
+        <div id="group-currency-tag" class="badge badge-neutral">INR</div>
       </div>
 
-      <!-- Group Summary Header Card -->
       <div class="card" style="margin-bottom: 2rem;">
         <div class="card-header" style="margin-bottom: 0;">
           <div>
             <h2 id="detail-group-name" style="font-size: 1.5rem; font-weight: 700;">Group Name</h2>
-            <p id="detail-group-desc" class="card-subtitle">Trip expenses & shared bills</p>
+            <p id="detail-group-desc" class="card-subtitle">Trip expenses and shared bills</p>
           </div>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-            <button class="btn btn-outline btn-sm" id="btn-header-sim">âš–ï¸ Fairness Simulator</button>
-            <button class="btn btn-outline btn-sm" id="btn-header-settle">ðŸ’¸ Settle Up</button>
-            <button class="btn btn-secondary btn-sm" id="btn-open-add-member">+ Member</button>
-            <button class="btn btn-primary btn-sm" id="btn-open-add-expense">+ Add Expense</button>
+            <button class="btn btn-outline btn-sm" id="btn-header-sim">Fairness Simulator</button>
+            <button class="btn btn-outline btn-sm" id="btn-header-settle">Settle Up</button>
+            <button class="btn btn-secondary btn-sm" id="btn-open-add-member">Add Member</button>
+            <button class="btn btn-primary btn-sm" id="btn-open-add-expense">Add Expense</button>
           </div>
         </div>
 
-        <!-- Metric Badges -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
           <div class="stat-card">
             <div class="stat-label">Total Spend</div>
-            <div id="detail-total-spend" class="stat-value">â‚¹0.00</div>
+            <div id="detail-total-spend" class="stat-value">0.00</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Active Members</div>
@@ -90,25 +89,24 @@
           </div>
           <div class="stat-card">
             <div class="stat-label">Unsettled Balance</div>
-            <div id="detail-unsettled-sum" class="stat-value">â‚¹0.00</div>
+            <div id="detail-unsettled-sum" class="stat-value">0.00</div>
           </div>
         </div>
       </div>
 
-      <!-- Tabs Navigation -->
       <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.5rem;">
         <button class="nav-link active" data-tab="tab-expenses">Expenses</button>
-        <button class="nav-link" data-tab="tab-balances">Balances & Settle Up</button>
+        <button class="nav-link" data-tab="tab-balances">Balances and Settle Up</button>
         <button class="nav-link" data-tab="tab-simulator">Fairness Simulator</button>
         <button class="nav-link" data-tab="tab-activity">Activity History</button>
       </div>
 
-      <!-- Tab 1: Expenses List -->
+      <!-- Expenses -->
       <div id="tab-expenses" class="tab-content">
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">Recorded Expenses</h3>
-            <button class="btn btn-secondary btn-sm" id="btn-tab-add-expense">+ Add Expense</button>
+            <button class="btn btn-secondary btn-sm" id="btn-tab-add-expense">Add Expense</button>
           </div>
           <div id="expenses-table-container">
             <table class="data-table">
@@ -122,51 +120,42 @@
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="expenses-tbody">
-                <!-- Dynamic Content -->
-              </tbody>
+              <tbody id="expenses-tbody"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Tab 2: Balances & Settlement Suggestions -->
+      <!-- Balances and Settlement -->
       <div id="tab-balances" class="tab-content" style="display: none;">
-        <!-- Settle Up Reconciliation Action Banner -->
         <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.7)); border: 1px solid rgba(16, 185, 129, 0.25);">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
               <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <h3 class="card-title" style="margin-bottom: 0; color: var(--accent-primary);">âš¡ Settle Up & Cancel Mutual Splits</h3>
+                <h3 class="card-title" style="margin-bottom: 0; color: var(--accent-primary);">Settle Up and Cancel Mutual Splits</h3>
                 <span class="badge badge-positive" id="settle-up-badge">Settle Up Ready</span>
               </div>
               <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem; margin-bottom: 0;">
-                Click Settle Up to automatically cancel out mutual offsetting splits between members, remove cancelling expenses from the recorded list, and update Activity History.
+                Click Settle Up to automatically cancel mutual offsetting splits between members, remove cancelling expenses from the recorded list, and update Activity History.
               </p>
             </div>
             <div>
-              <button id="btn-settle-up-reconcile" class="btn btn-primary" style="padding: 0.65rem 1.25rem; font-size: 0.9375rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
-                <span>âš¡</span> Settle Up
-              </button>
+              <button id="btn-settle-up-reconcile" class="btn btn-primary" style="padding: 0.65rem 1.25rem; font-size: 0.9375rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">Settle Up</button>
             </div>
           </div>
         </div>
 
         <div class="grid-cols-12">
-          <!-- Member Net Balances -->
           <div class="col-span-6">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Member Net Balances</h3>
                 <span class="badge badge-neutral" id="zero-sum-badge">Zero-Sum Verified</span>
               </div>
-              <div id="balances-list-container">
-                <!-- Balances render here -->
-              </div>
+              <div id="balances-list-container"></div>
             </div>
           </div>
 
-          <!-- Settlement Suggestions & Debt Simplification -->
           <div class="col-span-6">
             <div class="card">
               <div class="card-header">
@@ -174,22 +163,16 @@
                   <h3 class="card-title" style="margin-bottom: 0;">Settlement Optimizer</h3>
                   <span id="optimizer-algo-badge" class="badge badge-positive">Exact Optimal</span>
                 </div>
-                <button class="btn btn-primary btn-sm btn-settle-up-trigger" style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                  <span>âš¡</span> Settle Up
-                </button>
+                <button class="btn btn-primary btn-sm btn-settle-up-trigger" style="display: inline-flex; align-items: center; gap: 0.35rem;">Settle Up</button>
               </div>
-              <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                Suggested transfers calculated to minimize payments while preserving every member's exact net balance.
-              </p>
-              <div id="settlement-suggestions-container">
-                <!-- Suggestions render here -->
-              </div>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Suggested transfers calculated to minimize payments while preserving every member's exact net balance.</p>
+              <div id="settlement-suggestions-container"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Tab 3: Fairness Simulator Workbench -->
+      <!-- Fairness Simulator -->
       <div id="tab-simulator" class="tab-content" style="display: none;">
         <div class="card">
           <div class="card-header">
@@ -198,14 +181,12 @@
               <p class="card-subtitle">Non-destructive split preview. Test scenarios and compare differences before saving.</p>
             </div>
           </div>
-
-          <!-- Simulator Controls Form -->
           <div style="background-color: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">Select Expense to Simulate</label>
                 <select id="sim-expense-select" class="form-control form-select">
-                  <option value="">-- Choose an expense --</option>
+                  <option value="">Choose an expense</option>
                 </select>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
@@ -217,28 +198,21 @@
                 </select>
               </div>
             </div>
-
-            <!-- Participant Selector for Simulation -->
             <div style="margin-top: 1rem;">
               <label class="form-label">Participating Members</label>
-              <div id="sim-participants-list" style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
-                <!-- Rendered dynamically -->
-              </div>
+              <div id="sim-participants-list" style="display: flex; flex-wrap: wrap; gap: 0.75rem;"></div>
             </div>
-
             <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
               <button class="btn btn-secondary" id="btn-reset-sim">Reset</button>
               <button class="btn btn-primary" id="btn-run-sim">Simulate Scenario</button>
             </div>
           </div>
 
-          <!-- Simulation Comparison Results Table -->
           <div id="sim-results-box" class="simulator-box" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
               <h4 style="font-weight: 600; color: var(--accent-primary);">Scenario Comparison</h4>
-              <span class="badge badge-warning" id="sim-status-badge">Preview (Not Persisted)</span>
+              <span class="badge badge-warning" id="sim-status-badge">Preview Not Persisted</span>
             </div>
-
             <table class="data-table">
               <thead>
                 <tr>
@@ -249,43 +223,34 @@
                   <th>Simulated Net Balance</th>
                 </tr>
               </thead>
-              <tbody id="sim-comparison-tbody">
-                <!-- Comparison rows -->
-              </tbody>
+              <tbody id="sim-comparison-tbody"></tbody>
             </table>
-
             <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
               <button class="btn btn-secondary" id="btn-discard-sim">Discard Proposal</button>
-              <button class="btn btn-primary" id="btn-apply-sim">Confirm & Apply Split</button>
+              <button class="btn btn-primary" id="btn-apply-sim">Confirm and Apply Split</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Tab 4: Activity History -->
+      <!-- Activity History -->
       <div id="tab-activity" class="tab-content" style="display: none;">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Activity & Balance Audit History</h3>
+            <h3 class="card-title">Activity and Balance Audit History</h3>
           </div>
-          <div id="activity-timeline-container">
-            <!-- Timeline elements -->
-          </div>
+          <div id="activity-timeline-container"></div>
         </div>
       </div>
-
     </section>
-
   </main>
 
-  <!-- Modals -->
-
-  <!-- 1. Create Group Modal -->
+  <!-- Create Group Modal -->
   <div id="modal-create-group" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
         <h3 class="modal-title">Create New Group</h3>
-        <button class="modal-close" data-close="modal-create-group">&times;</button>
+        <button class="modal-close" data-close="modal-create-group">Close</button>
       </div>
       <form id="form-create-group">
         <div class="modal-body">
@@ -306,12 +271,12 @@
     </div>
   </div>
 
-  <!-- 2. Add Member Modal -->
+  <!-- Add Member Modal -->
   <div id="modal-add-member" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
         <h3 class="modal-title">Add Member to Group</h3>
-        <button class="modal-close" data-close="modal-add-member">&times;</button>
+        <button class="modal-close" data-close="modal-add-member">Close</button>
       </div>
       <form id="form-add-member">
         <div class="modal-body">
@@ -333,12 +298,12 @@
     </div>
   </div>
 
-  <!-- 2b. Edit Member / UPI Profile Modal -->
+  <!-- Edit Member Modal -->
   <div id="modal-edit-member" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h3 class="modal-title">Edit Member Profile & UPI ID</h3>
-        <button class="modal-close" data-close="modal-edit-member">&times;</button>
+        <h3 class="modal-title">Edit Member Profile and UPI ID</h3>
+        <button class="modal-close" data-close="modal-edit-member">Close</button>
       </div>
       <form id="form-edit-member">
         <input type="hidden" id="edit-member-id">
@@ -361,12 +326,12 @@
     </div>
   </div>
 
-  <!-- 3. Add/Edit Expense Modal -->
+  <!-- Add/Edit Expense Modal -->
   <div id="modal-expense" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
         <h3 class="modal-title" id="modal-expense-title">Add Expense</h3>
-        <button class="modal-close" data-close="modal-expense">&times;</button>
+        <button class="modal-close" data-close="modal-expense">Close</button>
       </div>
       <form id="form-expense">
         <input type="hidden" id="expense-id-hidden">
@@ -377,14 +342,12 @@
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
-              <label class="form-label" for="expense-amount">Total Amount (â‚¹) *</label>
+              <label class="form-label" for="expense-amount">Total Amount (INR) *</label>
               <input type="number" step="0.01" min="0.01" id="expense-amount" class="form-control" placeholder="0.00" required>
             </div>
             <div class="form-group">
               <label class="form-label" for="expense-payer">Paid By *</label>
-              <select id="expense-payer" class="form-control form-select" required>
-                <!-- Populated with members -->
-              </select>
+              <select id="expense-payer" class="form-control form-select" required></select>
             </div>
           </div>
           <div class="form-group">
@@ -395,13 +358,9 @@
               <option value="PERCENTAGE">Percentage Split (Basis Points)</option>
             </select>
           </div>
-
-          <!-- Dynamic Participants / Shares Entry -->
           <div class="form-group">
-            <label class="form-label">Participants & Shares</label>
-            <div id="expense-shares-inputs" style="max-height: 200px; overflow-y: auto; padding: 0.5rem; background: var(--bg-primary); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-              <!-- Rendered based on split method -->
-            </div>
+            <label class="form-label">Participants and Shares</label>
+            <div id="expense-shares-inputs" style="max-height: 200px; overflow-y: auto; padding: 0.5rem; background: var(--bg-primary); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);"></div>
           </div>
         </div>
         <div class="modal-footer">
@@ -412,12 +371,12 @@
     </div>
   </div>
 
-  <!-- 4. Record Settlement Modal -->
+  <!-- Record Settlement Modal -->
   <div id="modal-settle" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
         <h3 class="modal-title">Record Payment Settlement</h3>
-        <button class="modal-close" data-close="modal-settle">&times;</button>
+        <button class="modal-close" data-close="modal-settle">Close</button>
       </div>
       <form id="form-settle">
         <div class="modal-body">
@@ -431,17 +390,14 @@
               <select id="settle-to" class="form-control form-select" required></select>
             </div>
           </div>
-
-          <!-- Recipient UPI Configuration / Display Box -->
           <div id="settle-recipient-upi-info" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1rem;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Recipient's UPI ID:</span>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Recipient UPI ID:</span>
                 <span id="settle-recipient-upi-display" style="font-family: var(--font-mono); font-weight: 600; color: var(--accent-primary); margin-left: 0.5rem;">Loading...</span>
               </div>
               <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-recipient-upi" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Edit UPI</button>
             </div>
-            <!-- Inline input when UPI is missing or being edited -->
             <div id="settle-inline-upi-input-container" style="display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-subtle);">
               <label class="form-label" style="font-size: 0.75rem;">Configure UPI ID for Recipient</label>
               <div style="display: flex; gap: 0.5rem;">
@@ -450,9 +406,8 @@
               </div>
             </div>
           </div>
-
           <div class="form-group">
-            <label class="form-label" for="settle-amount">Amount (â‚¹) *</label>
+            <label class="form-label" for="settle-amount">Amount (INR) *</label>
             <input type="number" step="0.01" min="0.01" id="settle-amount" class="form-control" placeholder="0.00" required>
           </div>
           <div class="form-group">
@@ -463,30 +418,26 @@
         <div class="modal-footer" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
           <button type="button" class="btn btn-secondary" data-close="modal-settle">Cancel</button>
           <div style="display: flex; gap: 0.5rem;">
-            <button type="button" class="btn btn-outline" id="btn-settle-direct-cash">Record Cash / Direct</button>
-            <button type="submit" class="btn btn-primary" id="btn-settle-proceed-upi">âš¡ Pay via UPI</button>
+            <button type="button" class="btn btn-outline" id="btn-settle-direct-cash">Record Cash or Direct Payment</button>
+            <button type="submit" class="btn btn-primary" id="btn-settle-proceed-upi">Pay via UPI</button>
           </div>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- 4b. UPI Payment Intent & App Selection Flow Modal -->
+  <!-- UPI Payment Flow Modal -->
   <div id="modal-upi-flow" class="modal-backdrop">
     <div class="modal-dialog" style="max-width: 520px;">
-      
-      <!-- Flow Step 1: App Selection & QR View -->
       <div id="upi-step-select">
         <div class="modal-header">
           <div>
             <h3 class="modal-title">UPI Payment Transfer</h3>
-            <p class="card-subtitle" style="margin: 0; font-size: 0.8125rem;">Select an app on your mobile device or scan QR code</p>
+            <p class="card-subtitle" style="margin: 0; font-size: 0.8125rem;">Select an app on your mobile device or scan the QR code</p>
           </div>
-          <button class="modal-close" data-close="modal-upi-flow">&times;</button>
+          <button class="modal-close" data-close="modal-upi-flow">Close</button>
         </div>
-
         <div class="modal-body" style="padding: 1.25rem;">
-          <!-- Payment Summary Card -->
           <div class="upi-summary-box">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
               <div>
@@ -504,18 +455,12 @@
               <span>Note: <span id="upi-summary-note" style="color: var(--text-primary);">Settlement</span></span>
             </div>
           </div>
-
-          <!-- Mode Selector Tabs: Direct App vs QR Code -->
           <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
-            <button type="button" class="btn btn-sm btn-primary" id="btn-upi-mode-apps" style="flex: 1;">ðŸ“± Launch UPI App</button>
-            <button type="button" class="btn btn-sm btn-secondary" id="btn-upi-mode-qr" style="flex: 1;">ðŸ“· Scan QR Code</button>
+            <button type="button" class="btn btn-sm btn-primary" id="btn-upi-mode-apps" style="flex: 1;">Launch UPI App</button>
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-upi-mode-qr" style="flex: 1;">Scan QR Code</button>
           </div>
-
-          <!-- Mode 1: App Selection Grid -->
           <div id="upi-container-apps">
-            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
-              Tap an app below to launch payment on this device:
-            </p>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tap an app below to launch payment on this device:</p>
             <div class="upi-app-grid">
               <div class="upi-app-card" id="btn-app-gpay" data-app="gpay">
                 <div class="upi-app-icon" style="background: #1a73e8; color: #ffffff;">G</div>
@@ -539,48 +484,38 @@
               </div>
             </div>
             <div class="alert alert-info" style="margin-bottom: 0; padding: 0.625rem 0.875rem; font-size: 0.75rem;">
-              <span>ðŸ’¡ <strong>On Desktop / Laptop?</strong> Switch to the <strong>Scan QR Code</strong> tab to scan with your phone, or open via default UPI handler.</span>
+              <span><strong>Using a desktop or laptop?</strong> Switch to the Scan QR Code tab to scan with your phone, or open via the default UPI handler.</span>
             </div>
           </div>
-
-          <!-- Mode 2: QR Code Display -->
           <div id="upi-container-qr" style="display: none; text-align: center;">
-            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
-              Scan this dynamic UPI QR code with any UPI app on your phone:
-            </p>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Scan this dynamic UPI QR code with any UPI app on your phone:</p>
             <div class="upi-qr-card">
-              <div id="upi-qr-svg-wrapper">
-                <!-- SVG injected dynamically -->
-              </div>
-              <div class="upi-qr-caption">Scan to pay exact amount directly</div>
+              <div id="upi-qr-svg-wrapper"></div>
+              <div class="upi-qr-caption">Scan to pay the exact amount directly</div>
             </div>
           </div>
         </div>
-
         <div class="modal-footer" style="display: flex; justify-content: space-between;">
           <button type="button" class="btn btn-secondary" data-close="modal-upi-flow">Cancel</button>
-          <button type="button" class="btn btn-outline" id="btn-to-step2">I've Initiated Payment &rarr;</button>
+          <button type="button" class="btn btn-outline" id="btn-to-step2">I Have Initiated Payment</button>
         </div>
       </div>
 
-      <!-- Flow Step 2: Return from UPI App / Manual Confirmation -->
       <div id="upi-step-confirm" style="display: none;">
         <div class="modal-header">
           <div>
             <h3 class="modal-title">Confirm Payment Status</h3>
             <span class="upi-status-pill upi-pill-pending">Status: Pending Confirmation</span>
           </div>
-          <button class="modal-close" data-close="modal-upi-flow">&times;</button>
+          <button class="modal-close" data-close="modal-upi-flow">Close</button>
         </div>
-
         <div class="modal-body" style="padding: 1.25rem;">
           <div class="alert alert-warning" style="font-size: 0.8125rem; line-height: 1.4;">
             <div>
-              <strong>âš ï¸ User Confirmation Required:</strong><br>
+              <strong>User Confirmation Required:</strong><br>
               Standard UPI links do not provide automatic bank settlement webhooks without an enterprise payment gateway. Please indicate the outcome of your transaction in the UPI app.
             </div>
           </div>
-
           <div class="upi-summary-box">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
               <span style="font-size: 0.875rem; color: var(--text-secondary);">Transfer Amount</span>
@@ -595,56 +530,39 @@
               <span id="upi-confirm-payer" style="font-weight: 600; color: var(--text-primary);">-</span>
             </div>
           </div>
-
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label" for="upi-utr-input" style="font-size: 0.8125rem;">
-              UPI Reference ID / UTR (Optional)
-            </label>
+            <label class="form-label" for="upi-utr-input" style="font-size: 0.8125rem;">UPI Reference ID / UTR (Optional)</label>
             <input type="text" id="upi-utr-input" class="form-control form-control-sm" placeholder="e.g. 412356789012 (12-digit transaction number)">
-            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">
-              Found in your UPI app's transaction history / receipt. Helpful for audit integrity.
-            </span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Found in your UPI app transaction history or receipt. Helpful for audit integrity.</span>
           </div>
-
-          <p style="font-size: 0.8125rem; color: var(--text-muted); text-align: center; margin: 0;">
-            Did the payment succeed in your UPI app?
-          </p>
+          <p style="font-size: 0.8125rem; color: var(--text-muted); text-align: center; margin: 0;">Did the payment succeed in your UPI app?</p>
         </div>
-
         <div class="modal-footer" style="display: flex; flex-direction: column; gap: 0.5rem;">
           <div style="display: flex; gap: 0.5rem; width: 100%;">
-            <button type="button" class="btn btn-secondary" id="btn-upi-retry" style="flex: 1;">
-              ðŸ”„ Change App / Retry
-            </button>
-            <button type="button" class="btn btn-danger" id="btn-upi-cancel" style="flex: 1;">
-              âœ• Cancelled / Failed
-            </button>
+            <button type="button" class="btn btn-secondary" id="btn-upi-retry" style="flex: 1;">Change App or Retry</button>
+            <button type="button" class="btn btn-danger" id="btn-upi-cancel" style="flex: 1;">Cancelled or Failed</button>
           </div>
           <button type="button" class="btn btn-primary" id="btn-upi-success" style="width: 100%; padding: 0.75rem;">
-            âœ“ Payment Completed
-            <span class="upi-btn-subtext">Record settlement as User-Reported Success</span>
+            Payment Completed
+            <span class="upi-btn-subtext">Record settlement as user-reported success</span>
           </button>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- 5. Duplicate Expense Detection & Resolution Modal -->
+  <!-- Duplicate Expense Detection Modal -->
   <div id="modal-duplicate-expense" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
         <h3 class="modal-title">Matching Entry Found</h3>
-        <button class="modal-close" data-close="modal-duplicate-expense">&times;</button>
+        <button class="modal-close" data-close="modal-duplicate-expense">Close</button>
       </div>
       <div class="modal-body">
         <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--accent-warning, #f59e0b); padding: 0.875rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
           <div style="font-weight: 600; color: #d97706; margin-bottom: 0.25rem;">Existing Entry Detected</div>
-          <p style="font-size: 0.875rem; color: var(--text-primary); margin: 0;" id="duplicate-warning-text">
-            An expense with the same description/name already exists in this group.
-          </p>
+          <p style="font-size: 0.875rem; color: var(--text-primary); margin: 0;" id="duplicate-warning-text">An expense with the same description or name already exists in this group.</p>
         </div>
-
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
           <div style="background: var(--bg-surface-elevated); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
             <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem;">Existing Entry</div>
@@ -652,7 +570,6 @@
             <div id="duplicate-existing-amount" style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--accent-primary); margin: 0.25rem 0;">-</div>
             <div id="duplicate-existing-payer" style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>
           </div>
-
           <div style="background: var(--bg-surface-elevated); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
             <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem;">Your Submission</div>
             <div id="duplicate-new-desc" style="font-weight: 600; color: var(--text-primary); font-size: 0.9375rem;">-</div>
@@ -660,10 +577,7 @@
             <div id="duplicate-new-payer" style="font-size: 0.8125rem; color: var(--text-secondary);">-</div>
           </div>
         </div>
-
-        <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">
-          Would you like to <strong>update the existing entry</strong> with the new amounts and split, or record this as a <strong>new separate entry</strong>?
-        </p>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">Would you like to <strong>update the existing entry</strong> with the new amounts and split, or record this as a <strong>new separate entry</strong>?</p>
       </div>
       <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap;">
         <button type="button" class="btn btn-secondary" data-close="modal-duplicate-expense">Cancel</button>
@@ -673,55 +587,43 @@
     </div>
   </div>
 
-  <!-- 6. Settle Up Confirmation Modal -->
+  <!-- Settle Up Confirmation Modal -->
   <div id="modal-settle-up-confirm" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h3 class="modal-title">âš¡ Settle Up & Cancel Expenses</h3>
-        <button class="modal-close" data-close="modal-settle-up-confirm">&times;</button>
+        <h3 class="modal-title">Settle Up and Cancel Expenses</h3>
+        <button class="modal-close" data-close="modal-settle-up-confirm">Close</button>
       </div>
       <div class="modal-body">
         <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent-primary, #10b981); padding: 0.875rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
           <div style="font-weight: 600; color: var(--accent-primary); margin-bottom: 0.25rem;">Mutual Expense Offset Detected</div>
-          <p style="font-size: 0.875rem; color: var(--text-primary); margin: 0;" id="settle-up-modal-summary">
-            The following mutual offsetting expenses will be cancelled with each other, removing them from Recorded Expenses and updating the Activity History.
-          </p>
+          <p style="font-size: 0.875rem; color: var(--text-primary); margin: 0;" id="settle-up-modal-summary">The following mutual offsetting expenses will be cancelled with each other, removing them from Recorded Expenses and updating Activity History.</p>
         </div>
-
         <div style="margin-bottom: 1rem;">
-          <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Expenses to be Cancelled & Removed</label>
-          <div id="settle-up-expenses-list" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; max-height: 240px; overflow-y: auto;">
-            <!-- Rendered dynamically -->
-          </div>
+          <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Expenses to be Cancelled and Removed</label>
+          <div id="settle-up-expenses-list" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; max-height: 240px; overflow-y: auto;"></div>
         </div>
-
         <div style="background: var(--bg-surface-elevated); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
           <span style="font-size: 0.875rem; color: var(--text-secondary);">Total Offset Amount:</span>
-          <span id="settle-up-total-amount" style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--accent-primary);">â‚¹0.00</span>
+          <span id="settle-up-total-amount" style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--accent-primary);">0.00</span>
         </div>
-
-        <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 1rem; margin-bottom: 0;">
-          â„¹ï¸ Running balances will be reconciled for these mutual splits, and an audit record will be logged to the Activity History.
-        </p>
+        <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 1rem; margin-bottom: 0;">Running balances will be reconciled for these mutual splits, and an audit record will be logged to Activity History.</p>
       </div>
       <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
         <button type="button" class="btn btn-secondary" data-close="modal-settle-up-confirm">Cancel</button>
-        <button type="button" class="btn btn-primary" id="btn-settle-up-confirm-execute">
-          <span>âš¡</span> Confirm & Settle Up
-        </button>
+        <button type="button" class="btn btn-primary" id="btn-settle-up-confirm-execute">Confirm and Settle Up</button>
       </div>
     </div>
   </div>
 
   <footer class="app-footer">
     <div class="app-container">
-      <p>Spliz — No Awkward Money Talks. Split expenses, not friendships.</p>
+      <p>Spliz - No Awkward Money Talks. Split expenses, not friendships.</p>
     </div>
   </footer>
 
   <!-- App JavaScript Modules -->
+  <script type="module" src="js/appearance.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
-
-

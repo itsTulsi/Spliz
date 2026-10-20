@@ -1,0 +1,267 @@
+
+/* =====================================================
+   SPLIZ THEME SYSTEM
+   Friends = gender-neutral cyan / violet
+   Professional = warm beige / espresso
+   NO SPARKLES • NO GLITTER • NO SHIMMER
+   ===================================================== */
+
+/* ---------- FRIENDS: LIGHT ---------- */
+html[data-spliz-mode="friends"][data-spliz-theme="light"] {
+  color-scheme: light;
+
+  --bg-primary: #F3F5FC;
+  --bg-surface: rgba(255, 255, 255, 0.88);
+  --bg-surface-elevated: #FFFFFF;
+  --bg-surface-hover: #E9EEFA;
+  --bg-glass: rgba(255, 255, 255, 0.78);
+
+  --accent-primary: #6558D3;
+  --accent-primary-hover: #5043B5;
+  --accent-subtle: rgba(101, 88, 211, 0.12);
+  --accent-glow: 0 0 24px rgba(101, 88, 211, 0.20);
+
+  --text-primary: #22213B;
+  --text-secondary: #5D6380;
+  --text-muted: #8289A3;
+  --text-on-accent: #FFFFFF;
+
+  --status-positive: #159C76;
+  --status-positive-bg: rgba(21, 156, 118, 0.12);
+  --status-negative: #D94762;
+  --status-negative-bg: rgba(217, 71, 98, 0.12);
+  --status-warning: #A86D10;
+  --status-warning-bg: rgba(168, 109, 16, 0.12);
+  --status-info: #087EAA;
+  --status-info-bg: rgba(8, 126, 170, 0.12);
+
+  --border-subtle: rgba(101, 88, 211, 0.12);
+  --border-medium: rgba(101, 88, 211, 0.24);
+  --border-focus: #6558D3;
+
+  --spliz-accent: #6558D3;
+  --spliz-accent-hover: #5043B5;
+  --spliz-accent-soft: #E8E5FF;
+  --spliz-accent-text: #4438A5;
+
+  --disco-pink: #8B7AE8;
+  --disco-purple: #8B7AE8;
+  --disco-blue: #0891B2;
+}
+
+/* ---------- FRIENDS: DARK ---------- */
+html[data-spliz-mode="friends"][data-spliz-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-primary: #0B1120;
+  --bg-surface: rgba(22, 32, 51, 0.92);
+  --bg-surface-elevated: #1B2940;
+  --bg-surface-hover: #273952;
+  --bg-glass: rgba(22, 32, 51, 0.84);
+
+  --accent-primary: #22D3EE;
+  --accent-primary-hover: #67E8F9;
+  --accent-subtle: rgba(34, 211, 238, 0.13);
+  --accent-glow: 0 0 24px rgba(34, 211, 238, 0.22);
+
+  --text-primary: #F1F5F9;
+  --text-secondary: #B8C4D6;
+  --text-muted: #8B9AB0;
+  --text-on-accent: #FFFFFF;
+
+  --status-positive: #43E0B0;
+  --status-positive-bg: rgba(67, 224, 176, 0.13);
+  --status-negative: #FF7894;
+  --status-negative-bg: rgba(255, 120, 148, 0.13);
+  --status-warning: #FFD166;
+  --status-warning-bg: rgba(255, 209, 102, 0.13);
+  --status-info: #55D6FF;
+  --status-info-bg: rgba(85, 214, 255, 0.13);
+
+  --border-subtle: rgba(148, 163, 184, 0.14);
+  --border-medium: rgba(148, 163, 184, 0.25);
+  --border-focus: #22D3EE;
+
+  --spliz-accent: #22D3EE;
+  --spliz-accent-hover: #67E8F9;
+  --spliz-accent-soft: rgba(34, 211, 238, 0.14);
+  --spliz-accent-text: #67E8F9;
+
+  --disco-pink: #A78BFA;
+  --disco-purple: #A78BFA;
+  --disco-blue: #22D3EE;
+}
+
+/* ---------- FRIENDS BACKGROUNDS ---------- */
+html[data-spliz-mode="friends"][data-spliz-theme="light"] body {
+  background:
+    radial-gradient(
+      ellipse at 12% 8%,
+      rgba(101, 88, 211, 0.13),
+      transparent 36%
+    ),
+    radial-gradient(
+      ellipse at 88% 16%,
+      rgba(34, 211, 238, 0.14),
+      transparent 36%
+    ),
+    linear-gradient(
+      135deg,
+      #F3F5FC,
+      #EEF7FA 55%,
+      #F5F2FF
+    );
+}
+
+html[data-spliz-mode="friends"][data-spliz-theme="dark"] body {
+  background:
+    radial-gradient(
+      ellipse at 12% 12%,
+      rgba(34, 211, 238, 0.11),
+      transparent 36%
+    ),
+    radial-gradient(
+      ellipse at 88% 18%,
+      rgba(139, 92, 246, 0.14),
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      #0B1120,
+      #111B30 58%,
+      #101827
+    );
+}
+
+/* ---------- FRIENDS CARDS ---------- */
+html[data-spliz-mode="friends"] .card,
+html[data-spliz-mode="friends"] .stat-card,
+html[data-spliz-mode="friends"] .balance-card {
+  border-color: var(--border-medium);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ---------- FRIENDS BUTTONS ---------- */
+html[data-spliz-mode="friends"] .btn-primary {
+  background: linear-gradient(
+    120deg,
+    #6558D3,
+    #477DE8,
+    #0891B2
+  ) !important;
+
+  border-color: transparent !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 20px rgba(71, 125, 232, 0.22);
+}
+
+html[data-spliz-mode="friends"] .btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.24);
+}
+
+/* ---------- PROFESSIONAL: LIGHT ---------- */
+html[data-spliz-mode="professional"][data-spliz-theme="light"] {
+  color-scheme: light;
+
+  --bg-primary: #F7F2E9;
+  --bg-surface: #FFFCF6;
+  --bg-surface-elevated: #FFFFFF;
+  --bg-surface-hover: #F0E6D8;
+  --bg-glass: rgba(255, 252, 246, 0.90);
+
+  --accent-primary: #805A43;
+  --accent-primary-hover: #65432F;
+  --accent-subtle: rgba(128, 90, 67, 0.12);
+  --accent-glow: 0 0 18px rgba(128, 90, 67, 0.12);
+
+  --text-primary: #34251E;
+  --text-secondary: #746052;
+  --text-muted: #968475;
+  --text-on-accent: #FFFFFF;
+
+  --status-positive: #32836A;
+  --status-positive-bg: rgba(50, 131, 106, 0.12);
+  --status-negative: #C34F4F;
+  --status-negative-bg: rgba(195, 79, 79, 0.12);
+  --status-warning: #A66B12;
+  --status-warning-bg: rgba(166, 107, 18, 0.12);
+  --status-info: #397C9A;
+  --status-info-bg: rgba(57, 124, 154, 0.12);
+
+  --border-subtle: rgba(91, 65, 47, 0.12);
+  --border-medium: rgba(91, 65, 47, 0.20);
+  --border-focus: #805A43;
+
+  --spliz-accent: #805A43;
+  --spliz-accent-hover: #65432F;
+  --spliz-accent-soft: #EFE2D5;
+  --spliz-accent-text: #65432F;
+}
+
+/* ---------- PROFESSIONAL: DARK ---------- */
+html[data-spliz-mode="professional"][data-spliz-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-primary: #211A16;
+  --bg-surface: #30251F;
+  --bg-surface-elevated: #3D3028;
+  --bg-surface-hover: #4A392F;
+  --bg-glass: rgba(48, 37, 31, 0.92);
+
+  --accent-primary: #D5A782;
+  --accent-primary-hover: #E4BB99;
+  --accent-subtle: rgba(213, 167, 130, 0.14);
+  --accent-glow: 0 0 18px rgba(213, 167, 130, 0.15);
+
+  --text-primary: #F8EEE4;
+  --text-secondary: #D0BBA9;
+  --text-muted: #A99381;
+  --text-on-accent: #211A16;
+
+  --status-positive: #65C6A4;
+  --status-positive-bg: rgba(101, 198, 164, 0.13);
+  --status-negative: #F28C8C;
+  --status-negative-bg: rgba(242, 140, 140, 0.13);
+  --status-warning: #E8BD69;
+  --status-warning-bg: rgba(232, 189, 105, 0.13);
+  --status-info: #80C9E8;
+  --status-info-bg: rgba(128, 201, 232, 0.13);
+
+  --border-subtle: rgba(255, 235, 215, 0.10);
+  --border-medium: rgba(255, 235, 215, 0.18);
+  --border-focus: #D5A782;
+
+  --spliz-accent: #D5A782;
+  --spliz-accent-hover: #E4BB99;
+  --spliz-accent-soft: rgba(213, 167, 130, 0.16);
+  --spliz-accent-text: #F0C9A9;
+}
+
+/* ---------- PROFESSIONAL BACKGROUNDS ---------- */
+html[data-spliz-mode="professional"][data-spliz-theme="light"] body {
+  background: linear-gradient(
+    135deg,
+    #F7F2E9,
+    #F0E7DA
+  );
+}
+
+html[data-spliz-mode="professional"][data-spliz-theme="dark"] body {
+  background: linear-gradient(
+    135deg,
+    #211A16,
+    #30231F
+  );
+}
+
+/* ---------- ACCESSIBILITY ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html[data-spliz-mode="friends"] *,
+  html[data-spliz-mode="professional"] * {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
