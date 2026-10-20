@@ -1,14 +1,19 @@
-# Multi-stage Dockerfile for FairShare Intelligence Backend & Embedded UI
+# Multi-stage Dockerfile for Spliz Backend & Embedded UI
 FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /app
 
-# Copy Maven wrapper and dependency definitions
-COPY mvnw mvnw.cmd pom.xml ./
-COPY .mvn .mvn
+# Copy Maven wrapper and backend pom.xml
+COPY backend/mvnw backend/mvnw.cmd backend/pom.xml ./
+COPY backend/.mvn ./.mvn
 RUN chmod +x ./mvnw
 
-# Copy project source code (includes frontend assets in src/main/resources/static)
-COPY src ./src
+# Copy backend source code
+COPY backend/src ./src
+
+# Automatically copy frontend assets into static web resources during Docker build
+COPY frontend/ ./src/main/resources/static/
+
+# Package production executable JAR
 RUN ./mvnw clean package -DskipTests
 
 # Production Runtime Image

@@ -9,7 +9,7 @@ services:
     name: spliz-app
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerContext: .
     plan: free
     envVars:
       - key: DB_HOST
