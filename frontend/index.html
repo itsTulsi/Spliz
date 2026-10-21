@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/responsive.css">
-  <link rel="stylesheet" href="css/spliz-theme.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>âš–ï¸</text></svg>">
 </head>
 <body>
   <!-- Global Navigation -->
@@ -60,8 +60,8 @@
     <!-- View 2: Group Details Workbench -->
     <section id="view-group-detail" class="view-section">
       <div style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
-        <button class="btn btn-secondary btn-sm" id="btn-back-to-groups">Back to Groups</button>
-        <div id="group-currency-tag" class="badge badge-neutral">INR</div>
+        <button class="btn btn-secondary btn-sm" id="btn-back-to-groups">â† Back to Groups</button>
+        <div id="group-currency-tag" class="badge badge-neutral">INR (â‚¹)</div>
       </div>
 
       <div class="card" style="margin-bottom: 2rem;">
@@ -71,17 +71,17 @@
             <p id="detail-group-desc" class="card-subtitle">Trip expenses and shared bills</p>
           </div>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-            <button class="btn btn-outline btn-sm" id="btn-header-sim">Fairness Simulator</button>
-            <button class="btn btn-outline btn-sm" id="btn-header-settle">Settle Up</button>
-            <button class="btn btn-secondary btn-sm" id="btn-open-add-member">Add Member</button>
-            <button class="btn btn-primary btn-sm" id="btn-open-add-expense">Add Expense</button>
+            <button class="btn btn-outline btn-sm" id="btn-header-sim">âš–ï¸ Fairness Simulator</button>
+            <button class="btn btn-outline btn-sm" id="btn-header-settle">ðŸ’¸ Settle Up</button>
+            <button class="btn btn-secondary btn-sm" id="btn-open-add-member">+ Member</button>
+            <button class="btn btn-primary btn-sm" id="btn-open-add-expense">+ Add Expense</button>
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
           <div class="stat-card">
             <div class="stat-label">Total Spend</div>
-            <div id="detail-total-spend" class="stat-value">0.00</div>
+            <div id="detail-total-spend" class="stat-value">â‚¹0.00</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Active Members</div>
@@ -89,7 +89,7 @@
           </div>
           <div class="stat-card">
             <div class="stat-label">Unsettled Balance</div>
-            <div id="detail-unsettled-sum" class="stat-value">0.00</div>
+            <div id="detail-unsettled-sum" class="stat-value">â‚¹0.00</div>
           </div>
         </div>
       </div>
@@ -132,7 +132,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
               <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <h3 class="card-title" style="margin-bottom: 0; color: var(--accent-primary);">Settle Up and Cancel Mutual Splits</h3>
+                <h3 class="card-title" style="margin-bottom: 0; color: var(--accent-primary);">âš¡ Settle Up & Cancel Mutual Splits</h3>
                 <span class="badge badge-positive" id="settle-up-badge">Settle Up Ready</span>
               </div>
               <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem; margin-bottom: 0;">
@@ -140,7 +140,9 @@
               </p>
             </div>
             <div>
-              <button id="btn-settle-up-reconcile" class="btn btn-primary" style="padding: 0.65rem 1.25rem; font-size: 0.9375rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">Settle Up</button>
+              <button id="btn-settle-up-reconcile" class="btn btn-primary" style="padding: 0.65rem 1.25rem; font-size: 0.9375rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
+                <span>âš¡</span> Settle Up
+              </button>
             </div>
           </div>
         </div>
@@ -163,7 +165,9 @@
                   <h3 class="card-title" style="margin-bottom: 0;">Settlement Optimizer</h3>
                   <span id="optimizer-algo-badge" class="badge badge-positive">Exact Optimal</span>
                 </div>
-                <button class="btn btn-primary btn-sm btn-settle-up-trigger" style="display: inline-flex; align-items: center; gap: 0.35rem;">Settle Up</button>
+                <button class="btn btn-primary btn-sm btn-settle-up-trigger" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <span>âš¡</span> Settle Up
+                </button>
               </div>
               <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Suggested transfers calculated to minimize payments while preserving every member's exact net balance.</p>
               <div id="settlement-suggestions-container"></div>
@@ -342,7 +346,7 @@
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
-              <label class="form-label" for="expense-amount">Total Amount (INR) *</label>
+              <label class="form-label" for="expense-amount">Total Amount (â‚¹) *</label>
               <input type="number" step="0.01" min="0.01" id="expense-amount" class="form-control" placeholder="0.00" required>
             </div>
             <div class="form-group">
@@ -407,7 +411,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label" for="settle-amount">Amount (INR) *</label>
+            <label class="form-label" for="settle-amount">Amount (â‚¹) *</label>
             <input type="number" step="0.01" min="0.01" id="settle-amount" class="form-control" placeholder="0.00" required>
           </div>
           <div class="form-group">
@@ -418,8 +422,8 @@
         <div class="modal-footer" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
           <button type="button" class="btn btn-secondary" data-close="modal-settle">Cancel</button>
           <div style="display: flex; gap: 0.5rem;">
-            <button type="button" class="btn btn-outline" id="btn-settle-direct-cash">Record Cash or Direct Payment</button>
-            <button type="submit" class="btn btn-primary" id="btn-settle-proceed-upi">Pay via UPI</button>
+            <button type="button" class="btn btn-outline" id="btn-settle-direct-cash">Record Cash / Direct</button>
+            <button type="submit" class="btn btn-primary" id="btn-settle-proceed-upi">âš¡ Pay via UPI</button>
           </div>
         </div>
       </form>
@@ -456,8 +460,8 @@
             </div>
           </div>
           <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
-            <button type="button" class="btn btn-sm btn-primary" id="btn-upi-mode-apps" style="flex: 1;">Launch UPI App</button>
-            <button type="button" class="btn btn-sm btn-secondary" id="btn-upi-mode-qr" style="flex: 1;">Scan QR Code</button>
+            <button type="button" class="btn btn-sm btn-primary" id="btn-upi-mode-apps" style="flex: 1;">ðŸ“± Launch UPI App</button>
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-upi-mode-qr" style="flex: 1;">ðŸ“· Scan QR Code</button>
           </div>
           <div id="upi-container-apps">
             <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tap an app below to launch payment on this device:</p>
@@ -484,7 +488,7 @@
               </div>
             </div>
             <div class="alert alert-info" style="margin-bottom: 0; padding: 0.625rem 0.875rem; font-size: 0.75rem;">
-              <span><strong>Using a desktop or laptop?</strong> Switch to the Scan QR Code tab to scan with your phone, or open via the default UPI handler.</span>
+              <span>ðŸ’¡ <strong>On Desktop / Laptop?</strong> Switch to the <strong>Scan QR Code</strong> tab to scan with your phone, or open via default UPI handler.</span>
             </div>
           </div>
           <div id="upi-container-qr" style="display: none; text-align: center;">
@@ -512,7 +516,7 @@
         <div class="modal-body" style="padding: 1.25rem;">
           <div class="alert alert-warning" style="font-size: 0.8125rem; line-height: 1.4;">
             <div>
-              <strong>User Confirmation Required:</strong><br>
+              <strong>âš ï¸ User Confirmation Required:</strong><br>
               Standard UPI links do not provide automatic bank settlement webhooks without an enterprise payment gateway. Please indicate the outcome of your transaction in the UPI app.
             </div>
           </div>
@@ -539,12 +543,16 @@
         </div>
         <div class="modal-footer" style="display: flex; flex-direction: column; gap: 0.5rem;">
           <div style="display: flex; gap: 0.5rem; width: 100%;">
-            <button type="button" class="btn btn-secondary" id="btn-upi-retry" style="flex: 1;">Change App or Retry</button>
-            <button type="button" class="btn btn-danger" id="btn-upi-cancel" style="flex: 1;">Cancelled or Failed</button>
+            <button type="button" class="btn btn-secondary" id="btn-upi-retry" style="flex: 1;">
+              ðŸ”„ Change App / Retry
+            </button>
+            <button type="button" class="btn btn-danger" id="btn-upi-cancel" style="flex: 1;">
+              âœ• Cancelled / Failed
+            </button>
           </div>
           <button type="button" class="btn btn-primary" id="btn-upi-success" style="width: 100%; padding: 0.75rem;">
-            Payment Completed
-            <span class="upi-btn-subtext">Record settlement as user-reported success</span>
+            âœ“ Payment Completed
+            <span class="upi-btn-subtext">Record settlement as User-Reported Success</span>
           </button>
         </div>
       </div>
@@ -591,8 +599,8 @@
   <div id="modal-settle-up-confirm" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h3 class="modal-title">Settle Up and Cancel Expenses</h3>
-        <button class="modal-close" data-close="modal-settle-up-confirm">Close</button>
+        <h3 class="modal-title">âš¡ Settle Up & Cancel Expenses</h3>
+        <button class="modal-close" data-close="modal-settle-up-confirm">&times;</button>
       </div>
       <div class="modal-body">
         <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent-primary, #10b981); padding: 0.875rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
@@ -605,13 +613,18 @@
         </div>
         <div style="background: var(--bg-surface-elevated); padding: 0.875rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
           <span style="font-size: 0.875rem; color: var(--text-secondary);">Total Offset Amount:</span>
-          <span id="settle-up-total-amount" style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--accent-primary);">0.00</span>
+          <span id="settle-up-total-amount" style="font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--accent-primary);">â‚¹0.00</span>
         </div>
-        <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 1rem; margin-bottom: 0;">Running balances will be reconciled for these mutual splits, and an audit record will be logged to Activity History.</p>
+
+        <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 1rem; margin-bottom: 0;">
+          â„¹ï¸ Running balances will be reconciled for these mutual splits, and an audit record will be logged to the Activity History.
+        </p>
       </div>
       <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
         <button type="button" class="btn btn-secondary" data-close="modal-settle-up-confirm">Cancel</button>
-        <button type="button" class="btn btn-primary" id="btn-settle-up-confirm-execute">Confirm and Settle Up</button>
+        <button type="button" class="btn btn-primary" id="btn-settle-up-confirm-execute">
+          <span>âš¡</span> Confirm & Settle Up
+        </button>
       </div>
     </div>
   </div>
