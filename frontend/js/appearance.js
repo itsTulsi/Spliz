@@ -1,35 +1,86 @@
-
+﻿
 const root = document.documentElement;
 
 let mode = localStorage.getItem("spliz-mode") || "friends";
 let theme = localStorage.getItem("spliz-theme") || "light";
 
-const modeButtons = document.querySelectorAll("[data-spliz-mode]");
+const modeToggle = document.getElementById("btn-spliz-mode-toggle");
 const themeButton = document.getElementById("btn-spliz-theme");
+
+const friendCopy = new Map([
+  ["Expense Groups", "The Crew"],
+  ["Select a group to manage expenses, simulate fair splits, and optimize debts.", "Pick your crew. We'll sort out the money drama."],
+  ["Create Group", "Make a Crew"], ["New Group", "New Crew"],
+  ["Back to Groups", "â† Back to the Crew"], ["â† Back to Groups", "â† Back to the Crew"],
+  ["Total Spend", "Money Out the Door"], ["Total Spent", "Money Out the Door"],
+  ["Active Members", "Who's In"], ["Unsettled Balance", "Who Still Owes"],
+  ["Expenses", "The Bills"], ["Balances and Settle Up", "Who Owes Who"],
+  ["Fairness Simulator", "Try a Different Split"], ["Activity History", "The Receipts"],
+  ["Recorded Expenses", "The Bill Pile"], ["Member Net Balances", "Who's Up, Who's Down"],
+  ["Settle Up & Cancel Mutual Splits", "Squash the Money Beef"],
+  ["Settle Up & Cancel Expenses", "Tidy Up the Money Mess"],
+  ["Settle Up Ready", "Ready to Call It Even"], ["ZERO-SUM VERIFIED", "The Numbers Check Out"],
+  ["Zero-Sum Verified", "The Numbers Check Out"], ["NO OFFSETTING SPLITS", "No Money Beef Today"],
+  ["No Offsetting Splits", "No Money Beef Today"], ["Add Expense", "Add a Bill"],
+  ["Scan Receipt", "Scan That Receipt"], ["Scan a Receipt", "Scan That Receipt"],
+  ["Create New Group", "Make a Crew"], ["Settle Up", "Settle Up"],
+  ["Spent So Far", "Money Out the Door"], ["In This Group", "Who's In"],
+  ["Still to Settle", "Who Still Owes"], ["The Bills", "The Bills"],
+  ["Who Owes What", "Who Owes Who"], ["What Happened", "The Receipts"],
+  ["Group Bills", "The Bill Pile"], ["Everyoneâ€™s Balance", "Who's Up, Who's Down"],
+  ["Tidy Up Overlapping Bills", "Squash the Money Beef"], ["Tidy Up the Bills", "Tidy Up the Money Mess"],
+  ["Ready to Settle", "Ready to Call It Even"], ["Balances add up", "The Numbers Check Out"],
+  ["Nothing to tidy up", "No Money Beef Today"], ["Add a Bill", "Add a Bill"]
+]);
+const professionalCopy = new Map([
+  ["The Crew", "Expense Groups"],
+  ["Pick your crew. We'll sort out the money drama.", "Select a group to manage expenses, simulate fair splits, and optimize debts."],
+  ["Make a Crew", "Create Group"], ["New Crew", "New Group"],
+  ["â† Back to the Crew", "â† Back to Groups"],
+  ["Money Out the Door", "Total Spend"], ["Who's In", "Active Members"],
+  ["Who Still Owes", "Unsettled Balance"], ["The Bills", "Expenses"],
+  ["Who Owes Who", "Balances and Settle Up"], ["Try a Different Split", "Fairness Simulator"],
+  ["The Receipts", "Activity History"], ["The Bill Pile", "Recorded Expenses"],
+  ["Who's Up, Who's Down", "Member Net Balances"], ["Squash the Money Beef", "Settle Up & Cancel Mutual Splits"],
+  ["Tidy Up the Money Mess", "Settle Up & Cancel Expenses"], ["Ready to Call It Even", "Settle Up Ready"],
+  ["The Numbers Check Out", "ZERO-SUM VERIFIED"], ["No Money Beef Today", "NO OFFSETTING SPLITS"],
+  ["Add a Bill", "Add Expense"], ["Scan That Receipt", "Scan Receipt"]
+]);
+
+function replaceTextNodes(map) {
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    const current = node.nodeValue;
+    const trimmed = current.trim();
+    if (!trimmed) continue;
+    const replacement = map.get(trimmed);
+    if (replacement && replacement !== trimmed) node.nodeValue = current.replace(trimmed, replacement);
+  }
+}
 
 function applyAppearance() {
   root.dataset.splizMode = mode;
   root.dataset.splizTheme = theme;
-
-  modeButtons.forEach((button) => {
-    const active = button.dataset.splizMode === mode;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
-
-  if (themeButton) {
-    themeButton.textContent =
-      theme === "light" ? "☾ Dark" : "☀ Light";
+  if (modeToggle) {
+modeToggle.textContent = mode === "friends" ? "Professional" : "Friend";    modeToggle.setAttribute("aria-pressed", String(mode === "professional"));
+    modeToggle.title = mode === "friends" ? "Switch to clear, professional wording and styling" : "Switch to frank, goofy friends wording and styling";
   }
+if (themeButton) themeButton.textContent = theme === "light" ? "Dark" : "Light";  replaceTextNodes(mode === "friends" ? friendCopy : professionalCopy);
 }
 
-modeButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    mode = button.dataset.splizMode;
-    localStorage.setItem("spliz-mode", mode);
-    applyAppearance();
-  });
+modeToggle?.addEventListener("click", () => {
+  mode = mode === "friends" ? "professional" : "friends";
+  localStorage.setItem("spliz-mode", mode);
+  applyAppearance();
 });
+
+const textObserver = new MutationObserver(() => {
+  if (mode === "friends") replaceTextNodes(friendCopy);
+  else replaceTextNodes(professionalCopy);
+});
+textObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
 
 themeButton?.addEventListener("click", () => {
   theme = theme === "light" ? "dark" : "light";
@@ -196,3 +247,4 @@ function createWaterCanvas() {
   draw();
 }
 applyAppearance();
+
