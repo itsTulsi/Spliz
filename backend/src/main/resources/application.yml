@@ -11,7 +11,7 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5433}/${DB_NAME:fairshare_db}?sslmode=${DB_SSL_MODE:prefer}}
     username: ${DB_USER:fairshare_user}
     password: ${DB_PASSWORD:fairshare_secret_2026}
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
@@ -19,7 +19,7 @@ spring:
       idle-timeout: 300000
       max-lifetime: 600000
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
     hibernate:
       ddl-auto: update
     show-sql: false

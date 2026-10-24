@@ -16,6 +16,7 @@ const State = {
   pendingExpensePayload: null,
   pendingDuplicateExpense: null,
   currentUpiPayment: null, // holds { settlementId, upiUri, amountPaise, recipientName, recipientUpi, ... }
+  groupPendingDelete: null, // holds { id, name }
 };
 
 // DOM References
@@ -119,6 +120,14 @@ function init() {
   elements.btnBackToGroups?.addEventListener('click', showGroupsView);
   elements.btnHeaderSim?.addEventListener('click', () => switchTab('tab-simulator'));
   elements.btnHeaderSettle?.addEventListener('click', () => switchTab('tab-balances'));
+  document.getElementById('btn-header-delete-group')?.addEventListener('click', () => {
+    if (State.currentGroupId) {
+      const currentGroup = State.groups.find(g => String(g.id) === String(State.currentGroupId));
+      const name = currentGroup ? currentGroup.name : 'this group';
+      promptDeleteGroup(State.currentGroupId, name);
+    }
+  });
+  document.getElementById('btn-confirm-delete-group')?.addEventListener('click', handleConfirmDeleteGroup);
 
   // Modals Openers
   elements.btnOpenCreateGroup?.addEventListener('click', () => openModal('modal-create-group'));
@@ -355,7 +364,12 @@ async function loadGroups() {
         <div>
           <div class="card-header">
             <h3 class="card-title">${escapeHtml(group.name)}</h3>
-            <span class="badge badge-neutral">${group.currencyCode || 'INR'}</span>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span class="badge badge-neutral">${group.currencyCode || 'INR'}</span>
+              <button class="btn btn-danger btn-sm btn-delete-group" data-group-id="${group.id}" data-group-name="${escapeHtml(group.name)}" title="Delete Group" style="padding: 0.25rem 0.5rem; font-size: 0.8125rem;">
+                🗑️
+              </button>
+            </div>
           </div>
           <p class="card-subtitle" style="min-height: 2.5rem;">${escapeHtml(group.description || 'No description')}</p>
           <div style="margin-top: 0.75rem; font-size: 0.8125rem; color: var(--text-muted);">
@@ -373,6 +387,9 @@ async function loadGroups() {
             </button>
             <button class="btn btn-secondary btn-sm btn-quick-settle" data-group-id="${group.id}" style="flex: 1;">
               💸 Settle Up
+            </button>
+            <button class="btn btn-danger btn-sm btn-delete-group" data-group-id="${group.id}" data-group-name="${escapeHtml(group.name)}" style="flex: 1;">
+              🗑️ Delete
             </button>
           </div>
         </div>
@@ -404,12 +421,57 @@ async function loadGroups() {
       });
     });
 
+    elements.groupsGrid.querySelectorAll('.btn-delete-group').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-group-id');
+        const name = btn.getAttribute('data-group-name');
+        promptDeleteGroup(id, name);
+      });
+    });
+
   } catch (err) {
     elements.groupsGrid.innerHTML = `
       <div class="col-span-12 alert alert-warning">
         Failed to connect to backend: ${err.message}. Ensure Docker PostgreSQL & Spring Boot are running.
       </div>
     `;
+  }
+}
+
+
+/**
+ * Group Deletion Flow
+ */
+function promptDeleteGroup(groupId, groupName) {
+  State.groupPendingDelete = { id: groupId, name: groupName };
+  const nameEl = document.getElementById('delete-group-modal-name');
+  if (nameEl) nameEl.textContent = `"${groupName}"`;
+  openModal('modal-delete-group');
+}
+
+async function handleConfirmDeleteGroup() {
+  if (!State.groupPendingDelete) return;
+  const { id, name } = State.groupPendingDelete;
+  const btn = document.getElementById('btn-confirm-delete-group');
+  if (btn) btn.disabled = true;
+
+  try {
+    await Api.deleteGroup(id);
+    closeModal('modal-delete-group');
+    showToast(`Group "${name}" was permanently deleted.`, 'info');
+    State.groupPendingDelete = null;
+
+    if (String(State.currentGroupId) === String(id)) {
+      State.currentGroupId = null;
+      showGroupsView();
+    } else {
+      await loadGroups();
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 

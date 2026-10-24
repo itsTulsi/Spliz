@@ -373,6 +373,12 @@
   color: #e0f2fe;
 }
 
+.alert-danger {
+  background-color: var(--status-negative-bg);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #fee2e2;
+}
+
 /* UPI Payment Flow Components */
 .upi-app-grid {
   display: grid;
