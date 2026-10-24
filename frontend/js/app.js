@@ -1,6 +1,7 @@
 import { Api } from './api.js';
 import { formatCurrency, parseRupeesToPaise, formatDate, showToast, openModal, closeModal } from './ui-utils.js';
 import { generateQrSvg } from './qr-generator.js';
+import { initReceiptScanner } from './receipt-scanner.js';
 
 // Application State
 const State = {
@@ -135,6 +136,13 @@ function init() {
   elements.btnOpenAddMember?.addEventListener('click', () => openModal('modal-add-member'));
   elements.btnOpenAddExpense?.addEventListener('click', () => prepareExpenseModal());
   elements.btnTabAddExpense?.addEventListener('click', () => prepareExpenseModal());
+
+  initReceiptScanner({
+    getMembers: () => State.members,
+    getGroupId: () => State.currentGroupId,
+    createExpense: (groupId, payload) => Api.createExpense(groupId, payload),
+    onSaved: () => State.currentGroupId ? loadGroupDetails(State.currentGroupId) : Promise.resolve(),
+  });
 
   // Close modals on data-close
   document.querySelectorAll('[data-close]').forEach(btn => {

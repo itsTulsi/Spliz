@@ -78,9 +78,9 @@ export function showToast(message, type = 'info') {
     document.body.appendChild(container);
   }
 
-  const toast = document.createElement('div');
+    const toast = document.createElement('div');
   const bg = type === 'error' ? 'var(--status-negative)' :
-             type === 'success' ? 'var(--status-positive)' : 'var(--bg-surface-elevated)';
+             type === 'success' ? 'var(--status-positive)' : '#2B2540';
   const color = type === 'success' ? 'var(--text-on-accent)' : '#fff';
 
   toast.style.cssText = `
