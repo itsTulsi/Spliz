@@ -4,13 +4,12 @@ import com.fairshare.dto.GroupDto;
 import com.fairshare.dto.MemberDto;
 import com.fairshare.entity.GroupEntity;
 import com.fairshare.entity.GroupMemberEntity;
+import com.fairshare.entity.UserEntity;
 import com.fairshare.enums.ActivityEventType;
 import com.fairshare.exception.BusinessException;
 import com.fairshare.exception.ResourceNotFoundException;
-import com.fairshare.repository.ActivityLogRepository;
-import com.fairshare.repository.GroupMemberRepository;
-import com.fairshare.repository.GroupRepository;
-import com.fairshare.repository.SettlementRepository;
+import com.fairshare.repository.*;
+import com.fairshare.security.UserContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,23 +25,33 @@ public class GroupService {
     private final UpiPaymentService upiPaymentService;
     private final SettlementRepository settlementRepository;
     private final ActivityLogRepository activityLogRepository;
+    private final UserRepository userRepository;
 
     public GroupService(GroupRepository groupRepository,
                         GroupMemberRepository groupMemberRepository,
                         ActivityLogService activityLogService,
                         UpiPaymentService upiPaymentService,
                         SettlementRepository settlementRepository,
-                        ActivityLogRepository activityLogRepository) {
+                        ActivityLogRepository activityLogRepository,
+                        UserRepository userRepository) {
         this.groupRepository = groupRepository;
         this.groupMemberRepository = groupMemberRepository;
         this.activityLogService = activityLogService;
         this.upiPaymentService = upiPaymentService;
         this.settlementRepository = settlementRepository;
         this.activityLogRepository = activityLogRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional(readOnly = true)
     public List<GroupDto> getAllGroups() {
+        UserEntity currentUser = UserContext.getCurrentUser();
+        if (currentUser != null) {
+            return groupRepository.findDistinctByUserIdOrDisplayName(currentUser.getId(), currentUser.getDisplayName())
+                    .stream()
+                    .map(this::mapToDto)
+                    .collect(Collectors.toList());
+        }
         return groupRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -57,8 +66,20 @@ public class GroupService {
 
     @Transactional
     public GroupDto createGroup(GroupDto dto) {
-        GroupEntity group = new GroupEntity(dto.getName().trim(), dto.getDescription(), dto.getCurrencyCode());
+        UserEntity currentUser = UserContext.getCurrentUser();
+        GroupEntity group = new GroupEntity(dto.getName().trim(), dto.getDescription(), dto.getCurrencyCode(), currentUser);
         GroupEntity saved = groupRepository.save(group);
+
+        // Automatically enroll the creator as the first member if user is logged in
+        if (currentUser != null) {
+            GroupMemberEntity creatorMember = new GroupMemberEntity(
+                    saved,
+                    currentUser.getDisplayName(),
+                    currentUser.getUpiId(),
+                    currentUser
+            );
+            groupMemberRepository.save(creatorMember);
+        }
 
         activityLogService.logActivity(saved, "GROUP", saved.getId(),
             ActivityEventType.GROUP_CREATED, "Group '" + saved.getName() + "' created.");
@@ -114,7 +135,13 @@ public class GroupService {
             upiPaymentService.validateUpiId(upiId);
         }
 
-        GroupMemberEntity member = new GroupMemberEntity(group, name, upiId);
+        // Check if an existing registered user matches by username, display name, or UPI
+        UserEntity matchedUser = userRepository.findByUsernameIgnoreCase(name)
+                .or(() -> userRepository.findByDisplayNameIgnoreCase(name))
+                .or(() -> upiId != null ? userRepository.findByUpiIdIgnoreCase(upiId) : java.util.Optional.empty())
+                .orElse(null);
+
+        GroupMemberEntity member = new GroupMemberEntity(group, name, upiId, matchedUser);
         GroupMemberEntity saved = groupMemberRepository.save(member);
 
         activityLogService.logActivity(group, "MEMBER", saved.getId(),

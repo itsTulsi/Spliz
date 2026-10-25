@@ -1,9 +1,11 @@
 import { Api } from './api.js';
 import { formatCurrency, parseRupeesToPaise, formatDate, showToast, openModal, closeModal } from './ui-utils.js';
 import { generateQrSvg } from './qr-generator.js';
+import { initReceiptScanner } from './receipt-scanner.js';
 
 // Application State
 const State = {
+  currentUser: null,
   currentGroupId: null,
   groups: [],
   members: [],
@@ -94,32 +96,85 @@ const elements = {
   modalDuplicateExpense: document.getElementById('modal-duplicate-expense'),
   btnDuplicateUpdateExisting: document.getElementById('btn-duplicate-update-existing'),
   btnDuplicateCreateNew: document.getElementById('btn-duplicate-create-new'),
+
+  // Auth & User Profile
+  viewAuth: document.getElementById('view-auth'),
+  formLogin: document.getElementById('form-login'),
+  formRegister: document.getElementById('form-register'),
+  authTabLogin: document.getElementById('auth-tab-login'),
+  authTabRegister: document.getElementById('auth-tab-register'),
+  authErrorBanner: document.getElementById('auth-error-banner'),
+  loginUsername: document.getElementById('login-username'),
+  loginPassword: document.getElementById('login-password'),
+  regUsername: document.getElementById('reg-username'),
+  regDisplayName: document.getElementById('reg-display-name'),
+  regEmail: document.getElementById('reg-email'),
+  regUpi: document.getElementById('reg-upi'),
+  regPassword: document.getElementById('reg-password'),
+  btnDemoTulsi: document.getElementById('btn-demo-tulsi'),
+  btnDemoKavya: document.getElementById('btn-demo-kavya'),
+  navUserPill: document.getElementById('nav-user-pill'),
+  navUserAvatar: document.getElementById('nav-user-avatar'),
+  navUserName: document.getElementById('nav-user-name'),
+  btnLogout: document.getElementById('btn-logout'),
+  groupsUserGreeting: document.getElementById('groups-user-greeting'),
+  btnOpenSettings: document.getElementById('btn-open-settings'),
+  modalUserSettings: document.getElementById('modal-user-settings'),
+  formUserSettings: document.getElementById('form-user-settings'),
+  settingsErrorBanner: document.getElementById('settings-error-banner'),
+  settingsUsername: document.getElementById('settings-username'),
+  settingsDisplayName: document.getElementById('settings-display-name'),
+  settingsEmail: document.getElementById('settings-email'),
+  settingsUpi: document.getElementById('settings-upi'),
+  settingsCurrentPassword: document.getElementById('settings-current-password'),
+  settingsNewPassword: document.getElementById('settings-new-password'),
+  settingsConfirmPassword: document.getElementById('settings-confirm-password'),
+  btnSaveSettings: document.getElementById('btn-save-settings'),
 };
 
 /**
  * Initialize Event Handlers
  */
 function init() {
-  // Top Navbar Navigation
-  elements.navGroupsLink?.addEventListener('click', (e) => {
+  // Auth tab switching
+  elements.authTabLogin?.addEventListener('click', () => {
+    elements.authTabLogin.classList.add('active');
+    elements.authTabRegister.classList.remove('active');
+    elements.formLogin.style.display = 'block';
+    elements.formRegister.style.display = 'none';
+    hideAuthError();
+  });
+
+  elements.authTabRegister?.addEventListener('click', () => {
+    elements.authTabRegister.classList.add('active');
+    elements.authTabLogin.classList.remove('active');
+    elements.formRegister.style.display = 'block';
+    elements.formLogin.style.display = 'none';
+    hideAuthError();
+  });
+
+  // Auth form submissions & demo logins
+  elements.formLogin?.addEventListener('submit', handleLoginSubmit);
+  elements.formRegister?.addEventListener('submit', handleRegisterSubmit);
+  elements.btnDemoTulsi?.addEventListener('click', () => handleQuickDemoLogin('tulsi', 'tulsi123'));
+  elements.btnDemoKavya?.addEventListener('click', () => handleQuickDemoLogin('kavya', 'kavya123'));
+  elements.btnOpenSettings?.addEventListener('click', openSettingsModal);
+  elements.formUserSettings?.addEventListener('submit', handleSaveSettings);
+  elements.btnLogout?.addEventListener('click', handleLogout);
+
+  window.addEventListener('spliz:auth-required', () => {
+    setAuthenticatedUser(null);
+    showAuthView();
+  });
+
+  // Brand click goes to groups dashboard
+  document.querySelector('.nav-brand')?.addEventListener('click', (e) => {
     e.preventDefault();
     showGroupsView();
   });
 
-  elements.navSimLink?.addEventListener('click', (e) => {
-    e.preventDefault();
-    openSimulatorSection();
-  });
-
-  elements.navSettleLink?.addEventListener('click', (e) => {
-    e.preventDefault();
-    openSettleUpSection();
-  });
-
   // Group Header Quick Actions
   elements.btnBackToGroups?.addEventListener('click', showGroupsView);
-  elements.btnHeaderSim?.addEventListener('click', () => switchTab('tab-simulator'));
-  elements.btnHeaderSettle?.addEventListener('click', () => switchTab('tab-balances'));
   document.getElementById('btn-header-delete-group')?.addEventListener('click', () => {
     if (State.currentGroupId) {
       const currentGroup = State.groups.find(g => String(g.id) === String(State.currentGroupId));
@@ -135,6 +190,13 @@ function init() {
   elements.btnOpenAddMember?.addEventListener('click', () => openModal('modal-add-member'));
   elements.btnOpenAddExpense?.addEventListener('click', () => prepareExpenseModal());
   elements.btnTabAddExpense?.addEventListener('click', () => prepareExpenseModal());
+
+  initReceiptScanner({
+    getMembers: () => State.members,
+    getGroupId: () => State.currentGroupId,
+    createExpense: (groupId, payload) => Api.createExpense(groupId, payload),
+    onSaved: () => State.currentGroupId ? loadGroupDetails(State.currentGroupId) : Promise.resolve(),
+  });
 
   // Close modals on data-close
   document.querySelectorAll('[data-close]').forEach(btn => {
@@ -218,11 +280,28 @@ function init() {
   // Browser hash routing support
   window.addEventListener('hashchange', handleHashRouting);
 
-  // Initial Data Load & Session Restoration
-  loadGroups().then(() => {
-    handleHashRouting();
-    checkAndRestorePendingUpiSession();
-  });
+  // Initial Auth Check & Session Restoration
+  const existingToken = Api.getToken();
+  if (existingToken) {
+    Api.getMe()
+      .then(user => {
+        setAuthenticatedUser(user);
+        loadGroups().then(() => {
+          handleHashRouting();
+          checkAndRestorePendingUpiSession();
+        });
+      })
+      .catch(err => {
+        console.warn('Existing token invalid or expired:', err);
+        Api.clearToken();
+        setAuthenticatedUser(null);
+        showAuthView();
+      });
+  } else {
+    setAuthenticatedUser(null);
+    showAuthView();
+  }
+
 }
 
 /**
@@ -287,22 +366,288 @@ async function openSettleUpSection() {
 }
 
 /**
- * View Management
+ * View Management & Authentication
  */
-function showGroupsView() {
+function updateNavPageLabel() {
+  const labelEl = document.getElementById('nav-page-label');
+  if (!labelEl) return;
+
+  if (!State.currentUser) {
+    labelEl.textContent = 'Welcome to Spliz';
+    return;
+  }
+
+  if (!State.currentGroupId) {
+    labelEl.textContent = 'Expense Groups';
+    return;
+  }
+
+  const currentGroup = State.groups.find(g => String(g.id) === String(State.currentGroupId));
+  const groupName = currentGroup ? currentGroup.name : 'Group';
+
+  const activeTabBtn = document.querySelector('[data-tab].active');
+  const activeTabId = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'tab-expenses';
+
+  let activeTabName = 'Expenses';
+  if (activeTabId === 'tab-simulator') {
+    activeTabName = 'Fairness Simulator';
+  } else if (activeTabId === 'tab-balances') {
+    activeTabName = 'Settle Up';
+  } else if (activeTabId === 'tab-activity') {
+    activeTabName = 'Activity History';
+  }
+
+  labelEl.textContent = `${groupName} • ${activeTabName}`;
+}
+
+function showAuthView() {
   State.currentGroupId = null;
-  elements.viewGroupDetail.classList.remove('active');
-  elements.viewGroups.classList.add('active');
-  updateNavbarActive('nav-groups-link');
+  elements.viewGroups?.classList.remove('active');
+  elements.viewGroupDetail?.classList.remove('active');
+  elements.viewAuth?.classList.add('active');
+  if (elements.navUserPill) elements.navUserPill.style.display = 'none';
+  hideAuthError();
+  updateNavPageLabel();
+}
+
+function setAuthenticatedUser(user) {
+  State.currentUser = user;
+  if (user) {
+    if (elements.navUserAvatar) {
+      const initial = (user.displayName || user.username || 'U').charAt(0).toUpperCase();
+      elements.navUserAvatar.textContent = initial;
+    }
+    if (elements.navUserName) {
+      elements.navUserName.textContent = user.displayName || user.username;
+    }
+    if (elements.navUserPill) {
+      elements.navUserPill.style.display = 'inline-flex';
+    }
+    if (elements.groupsUserGreeting) {
+      elements.groupsUserGreeting.textContent = `Welcome back, ${user.displayName || user.username}! Select a group to manage expenses, simulate fair splits, and optimize debts.`;
+    }
+  } else {
+    if (elements.navUserPill) {
+      elements.navUserPill.style.display = 'none';
+    }
+  }
+}
+
+function showAuthError(msg) {
+  if (elements.authErrorBanner) {
+    elements.authErrorBanner.textContent = msg;
+    elements.authErrorBanner.style.display = 'block';
+  }
+}
+
+function hideAuthError() {
+  if (elements.authErrorBanner) {
+    elements.authErrorBanner.textContent = '';
+    elements.authErrorBanner.style.display = 'none';
+  }
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  hideAuthError();
+  const usernameOrEmail = elements.loginUsername?.value.trim();
+  const password = elements.loginPassword?.value;
+  if (!usernameOrEmail || !password) {
+    showAuthError('Please enter both username/email and password.');
+    return;
+  }
+  const btn = document.getElementById('btn-submit-login');
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Signing In...'; }
+    const res = await Api.login({
+      identifier: usernameOrEmail,
+      usernameOrEmail: usernameOrEmail,
+      username: usernameOrEmail,
+      email: usernameOrEmail,
+      password: password
+    });
+    Api.setToken(res.token);
+    setAuthenticatedUser(res.user);
+    showToast(`Welcome back, ${res.user.displayName}!`, 'success');
+    showGroupsView();
+  } catch (err) {
+    showAuthError(err.message || 'Login failed. Please check your credentials.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
+  }
+}
+
+async function handleRegisterSubmit(e) {
+  e.preventDefault();
+  hideAuthError();
+  const username = elements.regUsername?.value.trim();
+  const displayName = elements.regDisplayName?.value.trim();
+  const email = elements.regEmail?.value.trim();
+  const upiId = elements.regUpi?.value.trim() || null;
+  const password = elements.regPassword?.value;
+
+  if (!username || !displayName || !email || !password) {
+    showAuthError('Please fill in all required fields.');
+    return;
+  }
+  const btn = document.getElementById('btn-submit-register');
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Creating Account...'; }
+    const res = await Api.register({ username, displayName, email, upiId, password });
+    Api.setToken(res.token);
+    setAuthenticatedUser(res.user);
+    showToast(`Account created! Welcome, ${res.user.displayName}!`, 'success');
+    showGroupsView();
+  } catch (err) {
+    showAuthError(err.message || 'Registration failed.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Create Account'; }
+  }
+}
+
+async function handleQuickDemoLogin(username, password) {
+  hideAuthError();
+  try {
+    const res = await Api.login({
+      identifier: username,
+      usernameOrEmail: username,
+      username: username,
+      password: password
+    });
+    Api.setToken(res.token);
+    setAuthenticatedUser(res.user);
+    showToast(`Logged in as ${res.user.displayName}!`, 'success');
+    showGroupsView();
+  } catch (err) {
+    showAuthError(err.message || 'Demo login failed.');
+  }
+}
+
+async function handleLogout() {
+  try {
+    await Api.logout();
+  } catch (err) {
+    // Ignore logout error if session expired
+  } finally {
+    Api.clearToken();
+    setAuthenticatedUser(null);
+    State.groups = [];
+    State.currentGroupId = null;
+    showToast('Signed out successfully.', 'info');
+    showAuthView();
+  }
+}
+
+/**
+ * User Account Settings
+ */
+function openSettingsModal() {
+  if (!State.currentUser) return;
+  if (elements.settingsUsername) elements.settingsUsername.value = State.currentUser.username || '';
+  if (elements.settingsDisplayName) elements.settingsDisplayName.value = State.currentUser.displayName || '';
+  if (elements.settingsEmail) elements.settingsEmail.value = State.currentUser.email || '';
+  if (elements.settingsUpi) elements.settingsUpi.value = State.currentUser.upiId || '';
+  if (elements.settingsCurrentPassword) elements.settingsCurrentPassword.value = '';
+  if (elements.settingsNewPassword) elements.settingsNewPassword.value = '';
+  if (elements.settingsConfirmPassword) elements.settingsConfirmPassword.value = '';
+  if (elements.settingsErrorBanner) {
+    elements.settingsErrorBanner.textContent = '';
+    elements.settingsErrorBanner.style.display = 'none';
+  }
+  openModal('modal-user-settings');
+}
+
+async function handleSaveSettings(e) {
+  e.preventDefault();
+  if (elements.settingsErrorBanner) {
+    elements.settingsErrorBanner.textContent = '';
+    elements.settingsErrorBanner.style.display = 'none';
+  }
+
+  const username = elements.settingsUsername?.value.trim();
+  const displayName = elements.settingsDisplayName?.value.trim();
+  const email = elements.settingsEmail?.value.trim();
+  const upiId = elements.settingsUpi?.value.trim() || null;
+  const currentPassword = elements.settingsCurrentPassword?.value;
+  const newPassword = elements.settingsNewPassword?.value;
+  const confirmPassword = elements.settingsConfirmPassword?.value;
+
+  if (!username || !displayName || !email) {
+    showSettingsError('Username, Display Name, and Email are required.');
+    return;
+  }
+
+  if (newPassword) {
+    if (!currentPassword) {
+      showSettingsError('Current password is required to change password.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      showSettingsError('New password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showSettingsError('New passwords do not match.');
+      return;
+    }
+  }
+
+  const btn = elements.btnSaveSettings;
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    const updatedUser = await Api.updateSettings({
+      username,
+      displayName,
+      email,
+      upiId,
+      currentPassword: currentPassword || null,
+      newPassword: newPassword || null,
+    });
+    setAuthenticatedUser(updatedUser);
+    closeModal('modal-user-settings');
+    showToast('Account settings updated successfully!', 'success');
+    if (State.currentGroupId) {
+      loadGroupDetails(State.currentGroupId);
+    }
+  } catch (err) {
+    showSettingsError(err.message || 'Failed to update settings.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Settings'; }
+  }
+}
+
+function showSettingsError(msg) {
+  if (elements.settingsErrorBanner) {
+    elements.settingsErrorBanner.textContent = msg;
+    elements.settingsErrorBanner.style.display = 'block';
+  }
+}
+
+function showGroupsView() {
+  if (!State.currentUser) {
+    showAuthView();
+    return;
+  }
+  State.currentGroupId = null;
+  elements.viewAuth?.classList.remove('active');
+  elements.viewGroupDetail?.classList.remove('active');
+  elements.viewGroups?.classList.add('active');
+  updateNavPageLabel();
   loadGroups();
 }
 
 async function showGroupDetailView(groupId, targetTab = 'tab-expenses') {
+  if (!State.currentUser) {
+    showAuthView();
+    return;
+  }
   State.currentGroupId = groupId;
-  elements.viewGroups.classList.remove('active');
-  elements.viewGroupDetail.classList.add('active');
+  elements.viewAuth?.classList.remove('active');
+  elements.viewGroups?.classList.remove('active');
+  elements.viewGroupDetail?.classList.add('active');
   await loadGroupDetails(groupId);
   switchTab(targetTab);
+  updateNavPageLabel();
 }
 
 /**
@@ -317,23 +662,18 @@ function switchTab(tabId) {
   });
 
   if (tabId === 'tab-simulator') {
-    updateNavbarActive('nav-sim-link');
     // Auto-select first expense if none selected
     if (elements.simExpenseSelect && (!elements.simExpenseSelect.value || elements.simExpenseSelect.value === '') && State.expenses.length > 0) {
       elements.simExpenseSelect.value = State.expenses[0].id;
       handleSimExpenseSelect();
     }
-  } else if (tabId === 'tab-balances') {
-    updateNavbarActive('nav-settle-link');
-  } else {
-    updateNavbarActive('nav-groups-link');
   }
+
+  updateNavPageLabel();
 }
 
 function updateNavbarActive(activeNavId) {
-  document.querySelectorAll('.navbar .nav-link').forEach(link => {
-    link.classList.toggle('active', link.id === activeNavId);
-  });
+  updateNavPageLabel();
 }
 
 /**
@@ -377,21 +717,10 @@ async function loadGroups() {
           </div>
         </div>
 
-        <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
-          <button class="btn btn-primary btn-sm btn-open-group" data-group-id="${group.id}">
+        <div style="margin-top: 1.25rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+          <button class="btn btn-primary btn-sm btn-open-group" data-group-id="${group.id}" style="width: 100%;">
             Open Group Overview →
           </button>
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="btn btn-secondary btn-sm btn-quick-sim" data-group-id="${group.id}" style="flex: 1;">
-              ⚖️ Simulator
-            </button>
-            <button class="btn btn-secondary btn-sm btn-quick-settle" data-group-id="${group.id}" style="flex: 1;">
-              💸 Settle Up
-            </button>
-            <button class="btn btn-danger btn-sm btn-delete-group" data-group-id="${group.id}" data-group-name="${escapeHtml(group.name)}" style="flex: 1;">
-              🗑️ Delete
-            </button>
-          </div>
         </div>
       </div>
     `).join('');
@@ -402,22 +731,6 @@ async function loadGroups() {
         e.stopPropagation();
         const id = btn.getAttribute('data-group-id');
         showGroupDetailView(id, 'tab-expenses');
-      });
-    });
-
-    elements.groupsGrid.querySelectorAll('.btn-quick-sim').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.getAttribute('data-group-id');
-        showGroupDetailView(id, 'tab-simulator');
-      });
-    });
-
-    elements.groupsGrid.querySelectorAll('.btn-quick-settle').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.getAttribute('data-group-id');
-        showGroupDetailView(id, 'tab-balances');
       });
     });
 
@@ -513,6 +826,7 @@ async function loadGroupDetails(groupId) {
     // Header info
     elements.detailGroupName.textContent = group.name;
     elements.detailGroupDesc.textContent = group.description || 'No description provided';
+    updateNavPageLabel();
     elements.detailMemberCount.textContent = State.members.length;
 
     const totalSpendPaise = State.expenses.reduce((sum, exp) => sum + exp.amountPaise, 0);

@@ -13,4 +13,5 @@ public interface GroupMemberRepository extends JpaRepository<GroupMemberEntity, 
     List<GroupMemberEntity> findByGroupIdOrderByIdAsc(Long groupId);
     boolean existsByGroupIdAndDisplayNameIgnoreCase(Long groupId, String displayName);
     Optional<GroupMemberEntity> findByIdAndGroupId(Long id, Long groupId);
+    List<GroupMemberEntity> findByUserId(Long userId);
 }

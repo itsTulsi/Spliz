@@ -114,3 +114,26 @@ footer.app-footer {
   font-size: 0.875rem;
   color: var(--text-muted);
 }
+
+.nav-brand {
+  cursor: pointer;
+}
+
+.nav-page-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-page-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-surface-elevated);
+  padding: 0.35rem 1.1rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  letter-spacing: 0.01em;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}

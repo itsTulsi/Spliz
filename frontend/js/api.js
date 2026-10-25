@@ -2,12 +2,45 @@ const API_BASE = (window.location.port && window.location.port !== '8080')
   ? 'http://localhost:8080/api'
   : '/api';
 
+const TOKEN_KEY = 'spliz_auth_token';
+
 export const Api = {
+  getToken() {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch (e) {
+      return null;
+    }
+  },
+
+  setToken(token) {
+    try {
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    } catch (e) {
+      console.warn('LocalStorage error setting token:', e);
+    }
+  },
+
+  clearToken() {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+    } catch (e) {
+      console.warn('LocalStorage error clearing token:', e);
+    }
+  },
+
   async request(endpoint, options = {}) {
     const url = `${API_BASE}${endpoint}`;
+    const token = this.getToken();
+
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers,
     };
 
@@ -18,6 +51,13 @@ export const Api = {
       const contentType = response.headers.get('content-type');
       const isJson = contentType && contentType.includes('application/json');
       const data = isJson ? await response.json() : await response.text();
+
+      if (response.status === 401) {
+        this.clearToken();
+        window.dispatchEvent(new CustomEvent('spliz:auth-required', {
+          detail: { endpoint, status: 401, message: data?.message || 'Unauthorized' }
+        }));
+      }
 
       if (!response.ok) {
         let errorMsg = data?.message || data?.error || `HTTP ${response.status}: ${response.statusText}`;
@@ -38,6 +78,34 @@ export const Api = {
       console.error(`API Error on ${options.method || 'GET'} ${url}:`, err);
       throw err;
     }
+  },
+
+  // Authentication
+  register(payload) {
+    return this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+  login(payload) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+  getMe() {
+    return this.request('/auth/me');
+  },
+  updateSettings(payload) {
+    return this.request('/auth/settings', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  },
+  logout() {
+    return this.request('/auth/logout', {
+      method: 'POST',
+    });
   },
 
   // Groups

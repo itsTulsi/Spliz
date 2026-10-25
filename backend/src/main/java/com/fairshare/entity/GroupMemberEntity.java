@@ -23,19 +23,28 @@ public class GroupMemberEntity {
     @Column(name = "upi_id", length = 100)
     private String upiId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
+
     @Column(name = "joined_at", nullable = false, updatable = false)
     private Instant joinedAt = Instant.now();
 
     public GroupMemberEntity() {}
 
     public GroupMemberEntity(GroupEntity group, String displayName) {
-        this(group, displayName, null);
+        this(group, displayName, null, null);
     }
 
     public GroupMemberEntity(GroupEntity group, String displayName, String upiId) {
+        this(group, displayName, upiId, null);
+    }
+
+    public GroupMemberEntity(GroupEntity group, String displayName, String upiId, UserEntity user) {
         this.group = group;
         this.displayName = displayName;
         this.upiId = upiId;
+        this.user = user;
     }
 
     public Long getId() { return id; }
@@ -49,6 +58,9 @@ public class GroupMemberEntity {
 
     public String getUpiId() { return upiId; }
     public void setUpiId(String upiId) { this.upiId = upiId; }
+
+    public UserEntity getUser() { return user; }
+    public void setUser(UserEntity user) { this.user = user; }
 
     public Instant getJoinedAt() { return joinedAt; }
 }

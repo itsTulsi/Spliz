@@ -23,27 +23,113 @@
         <div class="brand-icon">S</div>
         <span>Spliz</span>
       </div>
-      <nav class="nav-links">
-        <a href="#groups" class="nav-link active" id="nav-groups-link">Groups</a>
-        <a href="#simulator" class="nav-link" id="nav-sim-link">Fairness Simulator</a>
-        <a href="#settle" class="nav-link" id="nav-settle-link">Settle Up</a>
-      </nav>
+      <div class="nav-page-indicator" id="nav-page-indicator">
+        <span class="nav-page-label" id="nav-page-label">Expense Groups</span>
+      </div>
       <div class="nav-actions spliz-mode-controls">
+        <div id="nav-user-pill" class="nav-user-pill" style="display: none;">
+          <span class="nav-user-avatar" id="nav-user-avatar">U</span>
+          <span class="nav-user-name" id="nav-user-name">User</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-open-settings" title="Account Settings" style="padding: 0.2rem 0.55rem; font-size: 0.75rem;">⚙️ Settings</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-logout" title="Sign out of Spliz" style="padding: 0.2rem 0.55rem; font-size: 0.75rem;">Sign Out</button>
+        </div>
         <button type="button" class="spliz-mode-btn spliz-mode-toggle" id="btn-spliz-mode-toggle" aria-label="Switch to professional mode">Professional</button>
         <button type="button" class="btn btn-secondary btn-sm" id="btn-spliz-theme" aria-label="Switch light or dark theme">Dark Theme</button>
-        <button class="btn btn-secondary btn-sm" id="btn-quick-new-group">New Group</button>
       </div>
     </div>
   </header>
 
   <!-- Main View Container -->
   <main class="main-content app-container">
+    <!-- View 0: Auth View (Login / Register) -->
+    <section id="view-auth" class="view-section">
+      <div class="auth-wrapper">
+        <div class="auth-card card">
+          <div class="auth-header">
+            <div class="brand-icon" style="margin: 0 auto 0.75rem auto;">S</div>
+            <h2>Welcome to Spliz</h2>
+            <p class="card-subtitle">Split shared expenses fairly. Zero awkward money talks.</p>
+          </div>
+
+          <!-- Auth Mode Switcher -->
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab-btn active" id="auth-tab-login">Sign In</button>
+            <button type="button" class="auth-tab-btn" id="auth-tab-register">Create Account</button>
+          </div>
+
+          <!-- Error message banner -->
+          <div id="auth-error-banner" class="auth-error-banner" style="display: none;"></div>
+
+          <!-- Login Form -->
+          <form id="form-login" class="auth-form">
+            <div class="form-group">
+              <label class="form-label" for="login-username">Username or Email</label>
+              <input type="text" id="login-username" class="form-control" placeholder="e.g. tulsi or tulsi@spliz.local" required autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="login-password">Password</label>
+              <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" id="btn-submit-login">Sign In</button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="form-register" class="auth-form" style="display: none;">
+            <div class="form-group">
+              <label class="form-label" for="reg-username">Username</label>
+              <input type="text" id="reg-username" class="form-control" placeholder="e.g. rohit" required autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-display-name">Full / Display Name</label>
+              <input type="text" id="reg-display-name" class="form-control" placeholder="e.g. Rohit Sharma" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-email">Email Address</label>
+              <input type="email" id="reg-email" class="form-control" placeholder="e.g. rohit@example.com" required autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-upi">UPI ID <span style="font-weight: normal; color: var(--text-muted);">(optional)</span></label>
+              <input type="text" id="reg-upi" class="form-control" placeholder="e.g. rohit@okhdfcbank">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-password">Password</label>
+              <input type="password" id="reg-password" class="form-control" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" id="btn-submit-register">Create Account</button>
+          </form>
+
+          <!-- 1-Click Demo Logins -->
+          <div class="auth-demo-section">
+            <div class="auth-demo-divider">
+              <span>Instant Demo Accounts</span>
+            </div>
+            <p class="auth-demo-hint">Experience how different users only see their own groups:</p>
+            <div class="auth-demo-buttons">
+              <button type="button" class="btn btn-secondary btn-sm auth-demo-btn" id="btn-demo-tulsi">
+                <span class="auth-demo-avatar" style="background-color: #6366f1;">T</span>
+                <div>
+                  <div style="font-weight: 600; line-height: 1.2;">Tulsi</div>
+                  <div style="font-size: 0.7rem; color: var(--text-secondary);">Goa Trip 2026</div>
+                </div>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm auth-demo-btn" id="btn-demo-kavya">
+                <span class="auth-demo-avatar" style="background-color: #ec4899;">K</span>
+                <div>
+                  <div style="font-weight: 600; line-height: 1.2;">Kavya</div>
+                  <div style="font-size: 0.7rem; color: var(--text-secondary);">Bangalore Flat 402</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
     <!-- View 1: Groups Dashboard -->
     <section id="view-groups" class="view-section active">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
           <h1 style="font-size: 1.875rem; font-weight: 700;">Expense Groups</h1>
-          <p style="color: var(--text-secondary); margin-top: 0.25rem;">Select a group to manage expenses, simulate fair splits, and optimize debts.</p>
+          <p style="color: var(--text-secondary); margin-top: 0.25rem;" id="groups-user-greeting">Select a group to manage expenses, simulate fair splits, and optimize debts.</p>
         </div>
         <button class="btn btn-primary" id="btn-open-create-group">Create Group</button>
       </div>
@@ -68,13 +154,10 @@
             <p id="detail-group-desc" class="card-subtitle">Trip expenses and shared bills</p>
           </div>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-    <button class="btn btn-outline btn-sm" id="btn-header-sim">⚖️ Fairness Simulator</button>
-    <button class="btn btn-outline btn-sm" id="btn-header-settle">💸 Settle Up</button>
-    <button class="btn btn-secondary btn-sm" id="btn-open-add-member">+ Member</button>
-    <button class="btn btn-secondary btn-sm" id="btn-open-receipt-scanner" type="button">Scan Receipt</button>
-    <button class="btn btn-primary btn-sm" id="btn-open-add-expense">+ Add Expense</button>
-    <button class="btn btn-danger btn-sm" id="btn-header-delete-group" title="Permanently delete this group">🗑️ Delete Group</button>
-</div>
+            <button class="btn btn-secondary btn-sm" id="btn-open-add-member">+ Member</button>
+            <button class="btn btn-secondary btn-sm" id="btn-open-receipt-scanner" type="button">Scan Receipt</button>
+            <button class="btn btn-danger btn-sm" id="btn-header-delete-group" title="Permanently delete this group">🗑️ Delete Group</button>
+          </div>
 </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
@@ -712,6 +795,75 @@
     </div>
   </div>
 
+  <!-- 8. User Settings Modal -->
+  <div id="modal-user-settings" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Account Settings</h3>
+        <button class="modal-close" data-close="modal-user-settings">&times;</button>
+      </div>
+      <form id="form-user-settings">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div id="settings-error-banner" class="auth-error-banner" style="display: none; margin-bottom: 0;"></div>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="settings-username">Username</label>
+            <input type="text" id="settings-username" class="form-control" placeholder="Unique username" required autocomplete="username">
+            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Letters, numbers, and underscores (3-30 chars).</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="settings-display-name">Full / Display Name</label>
+            <input type="text" id="settings-display-name" class="form-control" placeholder="Your name" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="settings-email">Email Address</label>
+            <input type="email" id="settings-email" class="form-control" placeholder="name@example.com" required autocomplete="email">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="settings-upi">Your UPI ID <span style="font-weight: normal; color: var(--text-muted);">(optional)</span></label>
+            <input type="text" id="settings-upi" class="form-control" placeholder="e.g. name@okhdfcbank">
+            <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Used when other members settle payments with you directly.</span>
+          </div>
+
+          <!-- Password Protection Container -->
+          <div style="background-color: var(--bg-primary); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="font-weight: 600; font-size: 0.875rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.35rem;">
+                🔒 Change Password
+              </span>
+              <span class="badge badge-neutral" style="font-size: 0.65rem;">Protected</span>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+              To change your password, you must enter your current password for verification. Leave these fields blank to keep your current password.
+            </p>
+
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label class="form-label" for="settings-current-password" style="font-size: 0.8125rem;">Current Password</label>
+              <input type="password" id="settings-current-password" class="form-control" placeholder="Enter current password" autocomplete="current-password">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label class="form-label" for="settings-new-password" style="font-size: 0.8125rem;">New Password</label>
+              <input type="password" id="settings-new-password" class="form-control" placeholder="At least 6 characters" minlength="6" autocomplete="new-password">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="settings-confirm-password" style="font-size: 0.8125rem;">Confirm New Password</label>
+              <input type="password" id="settings-confirm-password" class="form-control" placeholder="Re-type new password" autocomplete="new-password">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" data-close="modal-user-settings">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-settings">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <footer class="app-footer">
     <div class="app-container">
       <p>Spliz - No Awkward Money Talks. Split expenses, not friendships.</p>
@@ -722,6 +874,6 @@
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script type="module" src="js/appearance.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js?v=3"></script>
 </body>
 </html>

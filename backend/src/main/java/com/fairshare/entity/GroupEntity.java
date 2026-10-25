@@ -22,6 +22,10 @@ public class GroupEntity {
     @Column(name = "currency_code", nullable = false, length = 10)
     private String currencyCode = "INR";
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_user_id")
+    private UserEntity owner;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -44,6 +48,15 @@ public class GroupEntity {
         }
     }
 
+    public GroupEntity(String name, String description, String currencyCode, UserEntity owner) {
+        this.name = name;
+        this.description = description;
+        if (currencyCode != null) {
+            this.currencyCode = currencyCode;
+        }
+        this.owner = owner;
+    }
+
     @PreUpdate
     public void onPreUpdate() {
         this.updatedAt = Instant.now();
@@ -60,6 +73,9 @@ public class GroupEntity {
 
     public String getCurrencyCode() { return currencyCode; }
     public void setCurrencyCode(String currencyCode) { this.currencyCode = currencyCode; }
+
+    public UserEntity getOwner() { return owner; }
+    public void setOwner(UserEntity owner) { this.owner = owner; }
 
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
